@@ -730,7 +730,7 @@ setInterval(() => document.querySelectorAll('[data-wait]').forEach(el => { const
 const START = new Date(DAYS[0].date + 'T00:00:00');
 const dayNum = () => Math.floor((Date.now() - new Date().getTimezoneOffset()*6e4) / 864e5);
 function todayIdx(){ const n = Math.floor((new Date().setHours(0,0,0,0) - START) / 864e5) + 1; return Math.min(ND, Math.max(1, n)); }
-const EXAM = ND;                       // 44-kun = 20-dekabr, imtihon kuni
+const EXAM = ND;                       // oxirgi kun = 20-dekabr, imtihon kuni
 let selDay = todayIdx();
 const DY = d => DAYS[d-1];
 const fmtDate = s => { const [y,m,d] = s.split('-').map(Number); return `${d}-${['yanvar','fevral','mart','aprel','may','iyun','iyul','avgust','sentabr','oktabr','noyabr','dekabr'][m-1]}`; };
@@ -1080,12 +1080,16 @@ const tname = id => T[id] ? T[id].uz : id;
 const tar = id => T[id] ? T[id].title : id;
 const lst = ids => ids.map(id => `<span class="ar">${esc(tar(id))}</span> (${esc(tname(id))})`).join(', ');
 const hasNew = d => DY(d).date >= '2026-11-11';
-function tasksFor(d){
-  const y = DY(d), L = [], ph = y.ph || (y.mock ? 'mock' : 'learn');
+function tasksFor(d){                  // vaqt bo‘yicha tartiblangan
+  const tm0 = t => { const m = String(t.tm).match(/(\d{2}):(\d{2})/); return m ? +m[1] * 60 + +m[2] : 1e4; };
+  return tasksFor0(d).map((t, i) => [t, i]).sort((a, b) => tm0(a[0]) - tm0(b[0]) || a[1] - b[1]).map(x => x[0]);
+}
+function tasksFor0(d){
+  const y = DY(d), L = [], ph = y.ph || (y.mock ? 'mock' : 'learn'), isSun = y.wd === 'Yakshanba';
   const goW = () => { writeDay = d; setView('write'); }, goR = () => { readDay = d; setView('read'); }, goL = () => { listenDay = d; setView('listen'); };
-  const T_LIS = {id:'tL', tm:'Yo‘lda · 07:20–07:50', h:'Eshitish: Tanal to‘plami', what:'5 qisqa dialog (ikki marta), uzun dialog va ma’ruza (bir marta) — quloqchin bilan. Javoblardan keyin matnni o‘qib, yangi so‘zlarni lug‘atga qo‘shing.', act:[['Eshitish', goL]]};
-  const T_VOC = {id:'t2', tm:'Yo‘lda · 14:10', h: ph === 'learn' ? 'Lug‘at: yangi so‘zlar + takror' : 'Lug‘at: takror', what: ph === 'learn' ? `Bugungi to‘plam: ${y.v[1] - y.v[0]} ta yangi so‘z, ustiga muddati kelgan takrorlar. Har so‘zni bitta jumlada ishlating.` : 'Muddati kelgan takrorlar va qiyin so‘zlar. Yangi so‘z yo‘q.', act:[['Lug‘at kartochkalari', () => { vocDay = d; setView('vocab'); }]]};
-  const T_SPK = {id:'s1', tm:'17:30–17:45', h:'Muhodasa: Tanal formatida 6 savol', what:'Savol ovozda, 30 soniya <span class="ar">«استعد»</span>, so‘ng 30/45/60 soniya javob. Vaqt qolsa — namunaviy javobni eshitib, shu savolga qayta javob bering.', act:[['Muhodasa — Claude', () => spOpen(d, 'exam')], ['Erkin suhbat — Claude', () => spOpen(d, 'chat')]]};
+  const T_LIS = {id:'tL', tm:'Yo‘lda · 10:30–11:00', h:'Eshitish: Tanal to‘plami', what:'5 qisqa dialog (ikki marta), uzun dialog va ma’ruza (bir marta) — quloqchin bilan. Javoblardan keyin matnni o‘qib, yangi so‘zlarni lug‘atga qo‘shing.', act:[['Eshitish', goL]]};
+  const T_VOC = {id:'t2', tm:isSun ? '14:00' : 'Yo‘lda · 17:05', h: ph === 'learn' ? 'Lug‘at: yangi so‘zlar + takror' : 'Lug‘at: takror', what: ph === 'learn' ? `Bugungi to‘plam: ${y.v[1] - y.v[0]} ta yangi so‘z, ustiga muddati kelgan takrorlar. Har so‘zni bitta jumlada ishlating.` : 'Muddati kelgan takrorlar va qiyin so‘zlar. Yangi so‘z yo‘q.', act:[['Lug‘at kartochkalari', () => { vocDay = d; setView('vocab'); }]]};
+  const T_SPK = {id:'s1', tm:(ph === 'rev' || ph === 'after') ? '09:30–09:45' : '10:15–10:30', h:'Muhodasa: Tanal formatida 6 savol', what:'Savol ovozda, 30 soniya <span class="ar">«استعد»</span>, so‘ng 30/45/60 soniya javob. Vaqt qolsa — namunaviy javobni eshitib, shu savolga qayta javob bering.', act:[['Muhodasa — Claude', () => spOpen(d, 'exam')], ['Erkin suhbat — Claude', () => spOpen(d, 'chat')]]};
   const T_EVE = (h) => ({id:'t5', tm:'21:15–21:45', h:h || 'Kechki takror + 10 daqiqalik yozuv', what:'Muddati kelgan xatolarni qayta yeching (10 tagacha). So‘ng pastda 10 daqiqada kamida 50 so‘z arabcha yozing — tekshiruvsiz, faqat ravonlik uchun.', act:[['Xatolarni yechish (10)', () => drillWrong(10, null)]], diary:true});
   const W2 = y.w2 ? `Yozish: 2 savol — <span class="arline">${esc(y.w2.q1.title)}</span> (100 so‘z, 18 daq) va <span class="arline">${esc(y.w2.q2.title)}</span> (200 so‘z, 18 daq)` : '';
   if (PS.min && PS.min['d' + d]) {                 // B5: minimal kun (~45 daqiqa)
@@ -1100,44 +1104,44 @@ function tasksFor(d){
     return L;
   }
   if (ph === 'mock') {
-    L.push({id:'M', tm:'09:00–11:30', h:'To‘liq Tanal mock — 5 qism, /150', what:'Eshitish → grammatika (30 × 60 s) → o‘qish (3 matn, 35 daq) → yozish (100 + 200 so‘z, 18 + 18 daq) → gapirish (6 savol). Javoblar va izohlar faqat oxirida, Claude yordami yopiq.', act:[['Mock — Claude', () => openMock(d)]], parts:['Mg', 'Ml', 'Mr', 'Mw', 'Ms']});
-    L.push({id:'m4', tm:'16:00–17:30', h:'Mock tahlili', what:'Har qism natijasini ko‘ring, xatolarni «Nega?» bilan tahlil qiling, Top-5 xatoni yozuvga qo‘shing.', act:[['Mock natijasi — Claude', () => openMock(d)], ['Xatolarim', () => setView('wrong')]]});
+    L.push({id:'M', tm:isSun ? '09:00–11:30' : '07:00–09:30', h:'To‘liq Tanal mock — 5 qism, /150', what:'Eshitish → grammatika (30 × 60 s) → o‘qish (3 matn, 35 daq) → yozish (100 + 200 so‘z, 18 + 18 daq) → gapirish (6 savol). Javoblar va izohlar faqat oxirida, Claude yordami yopiq.', act:[['Mock — Claude', () => openMock(d)]], parts:['Mg', 'Ml', 'Mr', 'Mw', 'Ms']});
+    L.push({id:'m4', tm:isSun ? '16:00–17:30' : '09:30–10:30', h:'Mock tahlili', what:'Har qism natijasini ko‘ring, xatolarni «Nega?» bilan tahlil qiling, Top-5 xatoni yozuvga qo‘shing.', act:[['Mock natijasi — Claude', () => openMock(d)], ['Xatolarim', () => setView('wrong')]]});
     L.push(T_VOC);
     L.push(T_EVE('Kechki takror + 10 daqiqalik yozuv'));
     return L;
   }
   if (ph === 'light') {
     L.push(T_VOC);
-    L.push({id:'tL', tm:'Yo‘lda · 07:20', h:'Eshitish: bitta qism', what:'Ma’ruza yoki uzun dialog — oson, faqat quloqni sozlash uchun.', act:[['Eshitish', goL]]});
-    L.push({id:'t5', tm:'21:00–21:20', h:'Xatolarim: 10 savol', what:'Faqat takror. Ertaroq uxlang.', act:[['Boshlash', () => drillWrong(10, [d, 't5'])]]});
+    L.push({id:'tL', tm:'Yo‘lda · 10:30', h:'Eshitish: bitta qism', what:'Ma’ruza yoki uzun dialog — oson, faqat quloqni sozlash uchun.', act:[['Eshitish', goL]]});
+    L.push({id:'t5', tm:'21:15–21:35', h:'Xatolarim: 10 savol', what:'Faqat takror. Ertaroq uxlang.', act:[['Boshlash', () => drillWrong(10, [d, 't5'])]]});
     return L;
   }
   if (ph === 'rev' || ph === 'after') {
-    L.push({id:'t1', tm:'05:30–06:30', h: ph === 'after' ? 'Mock tahlili: zaif mavzular — 30 savol' : 'Yig‘ma test — 30 savol, 60 s dan', what:'Barcha o‘tilgan mavzulardan, natijasi past mavzularga ko‘proq savol. Tanal’dagidek har savolga 1 daqiqa.',
+    L.push({id:'t1', tm:'07:00–08:00', h: ph === 'after' ? 'Mock tahlili: zaif mavzular — 30 savol' : 'Yig‘ma test — 30 savol, 60 s dan', what:'Barcha o‘tilgan mavzulardan, natijasi past mavzularga ko‘proq savol. Tanal’dagidek har savolga 1 daqiqa.',
       act:[['Boshlash', () => preset({list:quotaList(learnedTopics(d), 30), timer:60, task:[d, 't1'], label:d + '-kun yig‘ma', est:true})], ['Xatolarim', () => drillWrong(20, null)]]});
     L.push(T_LIS); L.push(T_VOC);
-    L.push({id:'t3', tm:'15:00–15:40', h:'Yozish: 2 savol, 18 + 18 daqiqa', what: W2 || 'Tanal formatida 100 va 200 so‘zlik ikki savol.', act:[['Yozish — Claude', goW]]});
-    L.push({id:'t4', tm:'15:45–16:25', h:'O‘qish: 3 matn (6 + 8 + 10 savol), 35 daqiqa', what:'Qisqa, o‘rta va uzun matn — rasmiy formatda. Avval o‘qish tezligini yozing.', act:[['O‘qish — Claude', goR]], parts:['t4r']});
+    L.push({id:'t3', tm:'08:00–08:40', h:'Yozish: 2 savol, 18 + 18 daqiqa', what: W2 || 'Tanal formatida 100 va 200 so‘zlik ikki savol.', act:[['Yozish — Claude', goW]]});
+    L.push({id:'t4', tm:'08:45–09:25', h:'O‘qish: 3 matn (6 + 8 + 10 savol), 35 daqiqa', what:'Qisqa, o‘rta va uzun matn — rasmiy formatda. Avval o‘qish tezligini yozing.', act:[['O‘qish — Claude', goR]], parts:['t4r']});
     L.push(T_SPK); L.push(T_EVE());
     return L;
   }
   // o‘quv kuni
   const isE = y.nahv[0] === 'e00', nToday = y.nahv.filter(id => T[id] && T[id].n);
-  if (y.nahv.length) L.push({id:'t1', tm:'05:30–06:30', h: isE ? 'Keng tarqalgan xatolar: oldindan test → test' : 'Nahv: oldindan test → qoida → test',
+  if (y.nahv.length) L.push({id:'t1', tm:'07:00–08:00', h: isE ? 'Keng tarqalgan xatolar: oldindan test → test' : 'Nahv: oldindan test → qoida → test',
     what: lst(y.nahv) + `. Avval 8 ta savol (qoidani o‘qimasdan), keyin qoida, keyin ${isE ? 42 : 22} ta savol: bugungi mavzu + 1, 3, 7, 14 kun oldingi mavzulardan 10 ta. Har savolga 45 soniya.`,
     act:[['Oldindan test (8)', () => preset({list:mixList(d, nToday, 8, 0), timer:0, label:d + '-kun oldindan test'})],
       ...y.nahv.filter(id => T[id]).map(id => ['Qoida: ' + tname(id), () => { cur = id; setView('rules'); }]),
       ['Test (' + (isE ? 42 : 22) + ')', () => preset({list:mixList(d, nToday, isE ? 32 : 12, 10), timer:45, task:[d, 't1'], label:d + '-kun nahv'})]]});
-  else L.push({id:'t1', tm:'05:30–06:30', h:'Umumiy takror — Xatolarim', what:'Muddati kelgan xatolar, keyin 20 ta yig‘ma savol.', act:[['Xatolarim', () => drillWrong(20, null)], ['Yig‘ma (20)', () => preset({list:quotaList(learnedTopics(d), 20), timer:45, task:[d, 't1'], label:d + '-kun yig‘ma'})]]});
+  else L.push({id:'t1', tm:'07:00–08:00', h:'Umumiy takror — Xatolarim', what:'Muddati kelgan xatolar, keyin 20 ta yig‘ma savol.', act:[['Xatolarim', () => drillWrong(20, null)], ['Yig‘ma (20)', () => preset({list:quotaList(learnedTopics(d), 20), timer:45, task:[d, 't1'], label:d + '-kun yig‘ma'})]]});
   if (hasNew(d)) L.push(T_LIS);
   L.push(T_VOC);
   const kit = y.imla.length ? lst(y.imla) : 'imlo takrori';
   const imlaIds = y.imla.filter(id => T[id] && T[id].n);
-  L.push({id:'t3', tm:'15:00–16:30', h: y.w2 ? 'Kitaba: imlo + yozish (2 savol, 18 + 18 daq)' : `Kitaba: imlo + ${esc(y.w.l.toLowerCase())} (${y.w.n} so‘z)`,
+  L.push({id:'t3', tm:'08:00–09:30', h: y.w2 ? 'Kitaba: imlo + yozish (2 savol, 18 + 18 daq)' : `Kitaba: imlo + ${esc(y.w.l.toLowerCase())} (${y.w.n} so‘z)`,
     what:`${kit}. ${y.w2 ? W2 : `So‘ng vazifa: <span class="arline">${esc(y.w.t)}</span>`} Bugungi nahv qoidasidan kamida 3 ta misol ishlating.`,
     act:[...(imlaIds.length ? [['Imlo testi (20)', () => preset({list:mixList(d, imlaIds, 15, 5), timer:45, label:d + '-kun imlo'})]] : []), ['Yozish — Claude', goW]]});
   const sarfIds = y.sarf.filter(id => T[id] && T[id].n);
-  L.push({id:'t4', tm:'16:30–17:30', h:`O‘qish (${y.r.q} savol) + sarf`, what:(y.sarf.length ? 'Sarf: ' + lst(y.sarf) + '. ' : '') + 'Matnni vaqt bilan o‘qing, so‘ng yangi so‘zlarni lug‘atga qo‘shing.',
+  L.push({id:'t4', tm:'09:30–10:15', h:`O‘qish (${y.r.q} savol) + sarf`, what:(y.sarf.length ? 'Sarf: ' + lst(y.sarf) + '. ' : '') + 'Matnni vaqt bilan o‘qing, so‘ng yangi so‘zlarni lug‘atga qo‘shing.',
     act:[['O‘qish matni — Claude', goR], ...(sarfIds.length ? [['Sarf testi (20)', () => preset({list:mixList(d, sarfIds, 15, 5), timer:45, task:[d, 't4s'], label:d + '-kun sarf'})]] : [])],
     parts: sarfIds.length ? ['t4r', 't4s'] : ['t4r']});
   if (hasSpeak(d)) L.push(T_SPK);
@@ -1198,7 +1202,7 @@ function renderToday(){
       <div class="body"><div class="tmfull">${esc(t.tm)}</div><div class="what">${t.what}</div>${t.act.length ? `<div class="cta">${actBtns(t)}</div>` : ''}
       ${t.diary ? diaryHtml(d) : ''}</div></details>`;
   });
-  h += `</div><div class="minday"><button class="btn ghost sm" id="minb">${PS.min && PS.min['d' + d] ? 'To‘liq kunga qaytish' : 'Charchadim — minimal kun (≈45 daq)'}</button><span class="note">Jadval ish (08:00–14:00) va universitet (18:00–21:00) vaqtidan tashqarida; vaqtlarni o‘zingizga moslang.</span></div>`;
+  h += `</div><div class="minday"><button class="btn ghost sm" id="minb">${PS.min && PS.min['d' + d] ? 'To‘liq kunga qaytish' : 'Charchadim — minimal kun (≈45 daq)'}</button><span class="note">Jadval ish (11:00–17:00) va universitet (18:00–21:00) vaqtidan tashqarida; vaqtlarni o‘zingizga moslang.</span></div>`;
   $('#view').innerHTML = h;
   $('#view').querySelectorAll('.ck').forEach(b => b.onclick = e => { e.preventDefault(); e.stopPropagation(); markTask(d, b.dataset.t, !isDoneRaw(d, b.dataset.t)); renderToday(); });
   $('#view').querySelectorAll('[data-a]').forEach(b => b.onclick = () => ACTS[+b.dataset.a]());
@@ -1230,8 +1234,8 @@ function bindDiary(d){
 }
 function renderPlan(){
   const ti = todayIdx();
-  let h = `<div><div class="eyebrow">${ND} kunlik reja · 7-noyabr — 20-dekabr (imtihon)</div><h1 class="tt"><span>Tanal: nahv, sarf va kitaba ustuvor</span></h1>
-    <p class="note">1–30-kun: o‘quv bosqichi (yakshanba — to‘liq mock). 31–43-kun: takror va mock bosqichi, to‘liq mock 13 va 16-dekabrda, 18–19-dekabr yengil. 44-kun — imtihon.</p></div>
+  let h = `<div><div class="eyebrow">${ND} kunlik reja · ${fmtDate(DAYS[0].date)} — ${fmtDate(DAYS[ND - 1].date)} (imtihon)</div><h1 class="tt"><span>Tanal: nahv, sarf va kitaba ustuvor</span></h1>
+    <p class="note">1–28-kun: o‘quv bosqichi (yakshanba — sinov). 29–38-kun: takror va mock bosqichi: to‘liq mock 13-dekabr (yakshanba) va 16-dekabr (ertalab, ishdan oldin), 18–19-dekabr yengil. 39-kun — imtihon. Ish 11:00–17:00, universitet 18:00–21:00 — vazifalar ertalab va kechqurun.</p></div>
     <div class="cal">${['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya'].map(x => `<div class="hd">${x}</div>`).join('')}`;
   const off = (START.getDay() + 6) % 7;
   for (let i = 0; i < off; i++) h += '<div class="cell pad"></div>';
