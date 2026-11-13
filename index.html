@@ -226,6 +226,12 @@ textarea.diary{font-family:var(--f-ar);font-size:19px;direction:rtl;min-height:1
 .marked mark{background:var(--crimson-soft);color:var(--crimson);border-bottom:2px solid var(--crimson);padding:0 1px}
 .passage{font-family:var(--f-ar);direction:rtl;text-align:justify;font-size:21px;line-height:2}
 .passage p{margin:0 0 .8em}
+.rimg{display:block;width:100%;max-width:820px;height:auto;margin:8px auto;border:1px solid var(--line);border-radius:8px;background:#fff}
+.rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px;margin-top:10px}
+.rans{display:flex;align-items:center;gap:6px;direction:rtl}.rans b{min-width:26px;text-align:center}.rans .opt{padding:6px 12px;min-width:44px;justify-content:center}
+.rk{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:7px;padding:6px 10px;font-size:14px}.rk.ok{border-color:var(--ok);background:rgba(31,122,44,.08)}.rk.bad{border-color:var(--crimson);background:rgba(200,40,40,.06)}
+.matl{display:grid;grid-template-columns:max-content 1fr;gap:6px 12px;margin:10px 0 0}.matl dt{font-weight:700}.matl dd{margin:0}.mat .ar{font-size:1.15em}
+@media (max-width:560px){.matl{grid-template-columns:1fr}.matl dd{margin-bottom:6px}}
 .rq{border-top:1px solid var(--line);padding-top:12px;margin-top:12px}
 .rq .stem{font-size:20px}
 .rq .opts{padding:8px 0 4px}
@@ -628,6 +634,8 @@ const pad2 = n => String(n).padStart(2,'0');
 const DAYS = PL.days, NV = PL.vocab.length, ND = DAYS.length;
 const LST = C.listen || {sets:[]};
 const OFF = C.official || {gram:[], read:[]};
+const MED = C.media || {read:[], speak:{}};
+const MURL = p => AURL(p);                    // rasm va audio manzili (mini ilovada imzoli havola)
 
 /* ---------- storage: browser cache + private cloud docs ---------- */
 const LSK = k => 'tmini-' + k;
@@ -664,7 +672,7 @@ function dayDoc(k){ if (!(k in DAYDOC)) DAYDOC[k] = lsGet(k); return DAYDOC[k]; 
 function setDayDoc(k, v){ DAYDOC[k] = v; put(k, v); }
 async function syncDay(d){
   if (!DB) return;
-  for (const k of ['e' + pad2(d), 'e' + pad2(d) + 'a', 'e' + pad2(d) + 'b', 'r' + pad2(d), 'm' + pad2(d), 'k' + pad2(d), 'l' + pad2(d)]) {
+  for (const k of ['e' + pad2(d) + 'w100', 'e' + pad2(d) + 'w150', 'e' + pad2(d) + 'w200', 'r' + pad2(d), 'm' + pad2(d), 'k' + pad2(d), 'l' + pad2(d)]) {
     const r = await pull(k), l = dayDoc(k);
     if (r && (!l || (r.ts||0) > (l.ts||0))) { DAYDOC[k] = r; lsSet(k, r); if (view === 'write' || view === 'read' || view === 'mock' || (view === 'listen' && !LSN) || (view === 'speak' && SPK.mode === 'menu')) render(); }
     else if (l && (!r || (l.ts||0) > (r.ts||0))) put(k, l);
@@ -730,14 +738,21 @@ setInterval(() => document.querySelectorAll('[data-wait]').forEach(el => { const
 const START = new Date(DAYS[0].date + 'T00:00:00');
 const dayNum = () => Math.floor((Date.now() - new Date().getTimezoneOffset()*6e4) / 864e5);
 function todayIdx(){ const n = Math.floor((new Date().setHours(0,0,0,0) - START) / 864e5) + 1; return Math.min(ND, Math.max(1, n)); }
-const EXAM = ND;                       // oxirgi kun = 20-dekabr, imtihon kuni
+/* imtihon sanasi: 20-dekabr (yakshanba) yoki 19-dekabr (shanba) — PS.ex19 bilan almashtiriladi */
+const EX19 = {36:{ph:'light', lv:'90', note:'Yengil kun (imtihon 19-dekabrda): ≤ 90 daqiqa, faqat takror'},
+  37:{ph:'light', lv:'45', note:'≤ 45–60 daqiqa isinish va logistika; 19-dekabr uchun ishdan javob olinadi', wl:[]},
+  38:{ph:'exam', note:'IMTIHON — 19-dekabr, shanba', wl:[], sp:null}, 39:{ph:'rest', note:'Dam olish — imtihon 19-dekabrda o‘tdi', wl:[], sp:null}};
+const examDay = () => PS.ex19 ? ND - 1 : ND;
 let selDay = todayIdx();
-const DY = d => DAYS[d-1];
+const DY = d => { const y = DAYS[d-1]; if (!y || !PS.ex19 || !EX19[y.d]) return y;
+  const o = Object.assign({}, y, EX19[y.d]); if (y.d === 36) { o.wl = DAYS[36].wl; o.sp = DAYS[36].sp; } return o; };
+const LV = y => y.lv || ({36:'n', 37:'90', 38:'45'})[y.d] || 'n';
 const fmtDate = s => { const [y,m,d] = s.split('-').map(Number); return `${d}-${['yanvar','fevral','mart','aprel','may','iyun','iyul','avgust','sentabr','oktabr','noyabr','dekabr'][m-1]}`; };
 
 /* ---------- progress ---------- */
-/* B3: Xatolarim — to‘g‘ri javob faqat oraliq bilan hisoblanadi (6 soat, keyin 3 kun) */
-const H6 = 6 * 3600e3, DAY3 = 3 * 864e5;
+/* B3: Xatolarim — to‘g‘ri javob faqat oraliq bilan hisoblanadi: +1, +3, +8 kun (Cepeda 2008: 35 kunlik ufq uchun 8–11 kun) */
+const H6 = 20 * 3600e3, WSTEP = [1, 3, 8].map(k => k * 864e5);
+const DAY3 = WSTEP[1];
 function wget(i){ const w = P.w[i]; if (w == null) return null; return typeof w === 'number' ? {n:w, due:0} : w; }
 const wDue = i => { const w = wget(i); return !!w && (w.due || 0) <= Date.now(); };
 function record(q, right){
@@ -748,10 +763,10 @@ function record(q, right){
   let counted = true;
   if (right) {
     if (w) {
-      if (now >= (w.due || 0)) { w.n--; w.due = now + DAY3; if (w.n <= 0) delete P.w[q.i]; else P.w[q.i] = w; }
+      if (now >= (w.due || 0)) { w.n--; w.due = now + (WSTEP[3 - w.n] || WSTEP[2]); if (w.n <= 0) delete P.w[q.i]; else P.w[q.i] = w; }
       else counted = false;
     }
-  } else P.w[q.i] = {n:2, due:now + H6};
+  } else P.w[q.i] = {n:3, due:now + H6};
   save();
   return counted;
 }
@@ -835,7 +850,7 @@ function weakTopics(n){
   const rows = D.topics.filter(t => t.n).map(t => { const s = topicStats(t.id); return {id:t.id, w:(s.done ? 1 - s.ok / s.done : 0.5) + (s.done < Math.min(8, t.n) ? 0.2 : 0)}; });
   rows.sort((a, b) => b.w - a.w); return rows.slice(0, n).map(r => r.id);
 }
-function spacedTopics(d){ const s = new Set(); [1, 3, 7, 14].forEach(k => { if (d - k >= 1) topicsOfDay(d - k).forEach(t => s.add(t)); }); return [...s]; }
+function spacedTopics(d){ const s = new Set(); [1, 3, 8, 18].forEach(k => { if (d - k >= 1) topicsOfDay(d - k).forEach(t => s.add(t)); }); return [...s]; }
 function mixList(d, todayIds, nToday, nPrev){
   const used = new Set(), a = pickFrom(todayIds, nToday, used);
   let prev = spacedTopics(d).filter(t => !todayIds.includes(t));
@@ -1079,73 +1094,96 @@ document.addEventListener('keydown', e => {
 const tname = id => T[id] ? T[id].uz : id;
 const tar = id => T[id] ? T[id].title : id;
 const lst = ids => ids.map(id => `<span class="ar">${esc(tar(id))}</span> (${esc(tname(id))})`).join(', ');
-const hasNew = d => DY(d).date >= '2026-11-11';
+const hasNew = d => true;
+const isSunD = y => y.wd === 'Yakshanba';
+const LBL = {Sozlash:'Sozlash', raw:'', G:'Grammatika', Y:'Yozish', O:'O‘qish', Gp:'Gapirish', E:'Tinglash', Kech:'Kechqurun'};
+const arW = s => String(s).replace(/([؀-ۿ][؀-ۿً-ْ\s،؛؟.:()0-9-]*[؀-ۿً-ْ])/g, '<bdi dir="rtl" class="ar">$1</bdi>');
+function matHtml(y){
+  const m = y.mat || {}, keys = ['Sozlash', 'raw', 'G', 'Y', 'O', 'Gp', 'E', 'Kech'].filter(k => m[k]);
+  if (!keys.length && !y.out) return '';
+  return `<details class="blk mat"><summary style="cursor:pointer;font-weight:600">Bugungi material va natija mezoni</summary>
+    <dl class="matl">${keys.map(k => `<dt>${LBL[k] || 'Reja'}</dt><dd>${k === 'Y' && (y.wl || []).length ? wTitles(y) + (y.wr ? '. So‘ng kechagi eng zaif inshoni qayta yozish va namunadan 5 ta ibora.' : '') : matLink(arW(esc(m[k])))}</dd>`).join('')}</dl>
+    ${matLegend(m)}
+    ${y.out ? `<p class="note" style="margin:8px 0 0"><b>Kun natijasi:</b> ${arW(esc(y.out))}</p>` : ''}</details>`;
+}
+const MLEG = [['KT', 'كتاب التنال العربي.pdf (580 b.)'], ['TS', 'تصويبات لغوية - Tanal dizayn.pdf (30 test)'], ['RD', 'AtTanal Reading (2).pdf (kalit 99–102-b.)'], ['GM1', 'At-Tanal grammatika 1-full mock test (2).pdf'], ['S100', 'ATTANAL _ SPEAK 100_.pdf'], ['SM', 'TANAL SPEAKING MOCK.pdf'], ['CB', 'Arab_tili_C1-C2_imtihon_savollari.pdf'], ['KY', 'kitaba yangi.pdf'], ['AI', '100 Akademik Ibora ProArabic.pdf'], ['AJL', 'Al Jazeera Learning, ilg‘or daraja'], ['PR', 'ProArabic o‘qish mocklari']];
+const matLink = s => s.replace(/AJL (\d{4,6})/g, '<a href="https://learning.aljazeera.net/ar/articles/pages/$1" target="_blank" rel="noopener">AJL $1</a>');
+function matLegend(m){ const all = Object.values(m).join(' '); const L = MLEG.filter(([k]) => new RegExp('(^|[^A-Za-z])' + k + '([^A-Za-z]|$)').test(all)); return L.length ? `<p class="note" style="margin:8px 0 0">Fayllar (Telegram Desktop papkasi): ${L.map(([k, f]) => `<b>${k}</b> — ${arW(esc(f))}`).join('; ')}.</p>` : ''; }
+const wTitles = y => (y.wl || []).map(w => `<span class="arline">${esc(w.t)}</span> (${w.n} so‘z, ${w.min} daq)`).join(', ');
+const SPLAB = sp => sp ? (sp.b === 'sm' ? 'SM ' : 'S100 ') + sp.n : '';
 function tasksFor(d){                  // vaqt bo‘yicha tartiblangan
   const tm0 = t => { const m = String(t.tm).match(/(\d{2}):(\d{2})/); return m ? +m[1] * 60 + +m[2] : 1e4; };
   return tasksFor0(d).map((t, i) => [t, i]).sort((a, b) => tm0(a[0]) - tm0(b[0]) || a[1] - b[1]).map(x => x[0]);
 }
 function tasksFor0(d){
-  const y = DY(d), L = [], ph = y.ph || (y.mock ? 'mock' : 'learn'), isSun = y.wd === 'Yakshanba';
-  const goW = () => { writeDay = d; setView('write'); }, goR = () => { readDay = d; setView('read'); }, goL = () => { listenDay = d; setView('listen'); };
-  const T_LIS = {id:'tL', tm:'Yo‘lda · 10:30–11:00', h:'Eshitish: Tanal to‘plami', what:'5 qisqa dialog (ikki marta), uzun dialog va ma’ruza (bir marta) — quloqchin bilan. Javoblardan keyin matnni o‘qib, yangi so‘zlarni lug‘atga qo‘shing.', act:[['Eshitish', goL]]};
-  const T_VOC = {id:'t2', tm:isSun ? '14:00' : 'Yo‘lda · 17:05', h: ph === 'learn' ? 'Lug‘at: yangi so‘zlar + takror' : 'Lug‘at: takror', what: ph === 'learn' ? `Bugungi to‘plam: ${y.v[1] - y.v[0]} ta yangi so‘z, ustiga muddati kelgan takrorlar. Har so‘zni bitta jumlada ishlating.` : 'Muddati kelgan takrorlar va qiyin so‘zlar. Yangi so‘z yo‘q.', act:[['Lug‘at kartochkalari', () => { vocDay = d; setView('vocab'); }]]};
-  const T_SPK = {id:'s1', tm:(ph === 'rev' || ph === 'after') ? '09:30–09:45' : '10:15–10:30', h:'Muhodasa: Tanal formatida 6 savol', what:'Savol ovozda, 30 soniya <span class="ar">«استعد»</span>, so‘ng 30/45/60 soniya javob. Vaqt qolsa — namunaviy javobni eshitib, shu savolga qayta javob bering.', act:[['Muhodasa — Claude', () => spOpen(d, 'exam')], ['Erkin suhbat — Claude', () => spOpen(d, 'chat')]]};
-  const T_EVE = (h) => ({id:'t5', tm:'21:15–21:45', h:h || 'Kechki takror + 10 daqiqalik yozuv', what:'Muddati kelgan xatolarni qayta yeching (10 tagacha). So‘ng pastda 10 daqiqada kamida 50 so‘z arabcha yozing — tekshiruvsiz, faqat ravonlik uchun.', act:[['Xatolarni yechish (10)', () => drillWrong(10, null)]], diary:true});
-  const W2 = y.w2 ? `Yozish: 2 savol — <span class="arline">${esc(y.w2.q1.title)}</span> (100 so‘z, 18 daq) va <span class="arline">${esc(y.w2.q2.title)}</span> (200 so‘z, 18 daq)` : '';
-  if (PS.min && PS.min['d' + d]) {                 // B5: minimal kun (~45 daqiqa)
-    L.push({id:'n1', tm:'≈ 15 daq', h:'Lug‘at: faqat muddati kelganlar', what:'Yangi so‘z yo‘q.', act:[['Lug‘at', () => { vocDay = d; setView('vocab'); }]]});
-    L.push({id:'n2', tm:'≈ 15 daq', h:'Xatolarim: 10 savol', what:'Muddati kelgan xatolar.', act:[['Boshlash', () => drillWrong(10, [d, 'n2'])]]});
-    L.push({id:'n3', tm:'≈ 15 daq', h:'Yig‘ma test: 10 savol', what:'O‘tilgan mavzulardan, zaiflariga ko‘proq.', act:[['Boshlash', () => preset({list:quotaList(learnedTopics(d), 10), timer:45, task:[d, 'n3'], label:d + '-kun minimal'})]]});
+  const y = DY(d), L = [], ph = y.ph || 'learn', m = y.mat || {};
+  const goW = () => { writeDay = d; wPart = 0; setView('write'); }, goR = () => { readDay = d; readOff = false; setView('read'); }, goL = () => { listenDay = d; setView('listen'); };
+  const goRT = () => { readDay = d; readOff = 'tm'; setView('read'); };
+  const goVoc = () => { vocDay = d; setView('vocab'); };
+  const tid = (y.nahv || []).concat(y.sarf || [], y.imla || []).filter(id => T[id] && T[id].n);
+  const K0 = (tm, h) => ({id:'k0', tm, h:h || 'Karta takrori: kechagilar va muddati kelganlar', what:'Uyqudan keyin yoddan: kechagi kartalar (+1), so‘ng +3/+8/+18 navbati va Xatolarim. Avval javobni ayting, keyin tekshiring.', act:[['Xatolarim (10)', () => drillWrong(10, [d, 'k0'])], ['Lug‘at va maqollar', goVoc]]});
+  const T_SPK = (tm, extra) => ({id:'s1', tm, h:`Gapirish: 6 savol${y.sp ? ' · ' + SPLAB(y.sp) : ''}`, what:`Har savolga 60 soniya tayyorgarlik (ovoz chiqarmasdan), so‘ng javob 30/30/45/45/60/60 soniya. ${m.Gp ? 'Material: ' + arW(esc(m.Gp)) + '. ' : ''}${extra || 'Javoblarni yozib oling va bir marta tinglang: vaqtni to‘ldirdimmi, 3 fikr aytdimmi, 2 ta nishon xato bormi?'}`,
+    act:[...(y.sp && spBankOK(y.sp) ? [['Bankdan: ' + SPLAB(y.sp), () => spBank(d, y.sp)]] : []), ['Gapirish — Claude', () => spOpen(d, 'exam')]]});
+  const T_LIS = {id:'tL', tm:'Yo‘lda · 10:30–11:00', h:'Tinglash (yo‘l 1): 5 fakt usuli', what:`0–8 daq: audio savolsiz va transkriptsiz bir marta → 5 fakt (kim, nima, qachon, raqam, sabab). 8–14: transkript bilan qayta. 14–26: 2 parchani pichirlab soyalab takrorlash. 26–30: 3–5 ibora kartaga.${m.E ? ' Audio: ' + arW(esc(m.E)) + '.' : ''}`, act:[['Eshitish', goL]]};
+  const T_VOC = {id:'t2', tm:'Yo‘lda · 17:00–17:30', h:'Maqol va lug‘at kartalari (yo‘l 2)', what:'10 daq maqollar (hikmat formulasi bilan), 15 daq ertalabki audio transkriptsiz qayta, 5 daq sinonim juftliklari. Kartalarda: yangi so‘zlar, maqollar va muddati kelgan takrorlar.', act:[['Kartalar', goVoc]]};
+  const T_EVE = (tm, what) => ({id:'t5', tm:tm || '21:15–22:10', h:'Kechki xotira bloki', what:what || `21:15 bitta 60 soniyalik savol (yozib oling). 21:25–22:10 yangi kartalar: 5 maqol, 4–5 ibora, kunning xatolari — har biri 3 marta to‘g‘ri aytilguncha.${m.Kech ? ' Bugun: ' + arW(esc(m.Kech)) + '.' : ''} 22:10 ertangi insho mavzularini o‘qing, 22:30 uyqu.`, act:[['Xatolarim (10)', () => drillWrong(10, [d, 't5'])], ['Kartalar', goVoc]]});
+  const T_WRITE = tm => { const wl = y.wl || []; if (!wl.length) return null; const tri = wl.length === 3;
+    return {id:'t3', tm, h: tri ? `Yozish: 3 insho — 100/15, 150/20, 200/30${y.wfree ? ' (bugun vaqtsiz, qolip bilan)' : ''}` : `Yozish: ${wl[0].n} so‘z, ${wl[0].min} daqiqa${y.wr ? ' + qayta yozish' : ''}`,
+      what: wTitles(y) + '. ' + (tri ? 'Kompyuterda, arabcha klaviaturada. Reja 2/3/4 daq, oxirida 2/3/5 daq tekshiruv (hamza, ة/ه, ى/ي, tinish, mos so‘z). 110/165/220 so‘zni mo‘ljallang.' : (y.wr ? 'So‘ng 20 daq kechagi eng zaif inshoni qayta yozing va 15 daq namunadan 5 ta ibora ajrating.' : 'Oxirida tekshiruv.')),
+      act:[['Yozish — Claude', goW]]}; };
+  const T_READ = (tm, h, half) => ({id:'t4', tm, h:h || `O‘qish${y.rd ? ': RD ' + y.rd + '-dars' : ''} — vaqt bilan`, what:`${m.O ? arW(esc(m.O)) + '. ' : ''}Qisqa matn 1,5+6, o‘rta 5+8, uzun 7+10 daqiqa. Javobsiz savol qoldirmang; kalit bilan tekshirib, har xatoni turga ajrating (vaqt / lug‘at / xulosa / noto‘g‘ri o‘qish).`,
+    act:[['O‘qish taymeri', goRT], ...(half && OFF.read && OFF.read.length ? [['Rasmiy namuna (18)', () => openOffRead()]] : []), ['O‘qish matni — Claude', goR]], parts:['t4r']});
+
+  if (PS.min && PS.min['d' + d]) {                 // minimal kun (~30 daqiqa)
+    L.push({id:'n1', tm:'07:00–07:15', h:'Navbatdagi kartalar', what:'Faqat muddati kelganlar — yangi karta yo‘q.', act:[['Kartalar', goVoc]]});
+    L.push({id:'n2', tm:'07:15–07:25', h:'Xatolarim: 10 savol', what:'Muddati kelgan xatolar.', act:[['Boshlash', () => drillWrong(10, [d, 'n2'])]]});
+    L.push({id:'n3', tm:'21:15–21:25', h:'Bitta paragraf yoki bitta gapirish savoli', what:'10 daqiqa: bitta paragraf yozing yoki bitta 60 soniyalik savolga javob bering. Qoida: ikki kun ketma-ket minimal kun bo‘lmasin.', act:[['Yozish', goW], ['Gapirish', () => spOpen(d, 'exam')]]});
     return L;
   }
+  if (ph === 'rest') return L;
   if (ph === 'exam') {
-    L.push({id:'x1', tm:'08:00', h:'Tanal imtihoni', what:'Ertalab yengil nonushta, hujjatlar, 15 daqiqa oldin joyda bo‘ling. Har bo‘limda vaqtni kuzating; bilmagan savolda to‘xtab qolmang.', act:[]});
-    L.push({id:'x2', tm:'06:30–06:40', h:'Isinish: 10 ta oson savol', what:'Faqat ishonchli mavzulardan — miyani ishga tushirish uchun.', act:[['Boshlash', () => preset({list:quotaList(learnedTopics(d), 10), timer:0, label:'Isinish'})]]});
+    L.push({id:'x2', tm:'06:45–06:55', h:'Isinish: 10 ta oson savol', what:'Kelishdan 60–90 daqiqa oldin: 10 oson savol, 2 ta ochilish jumlasini ovoz chiqarib aytish, 1 ta maqol va uning hikmat formulasi. Yangi narsa o‘qilmaydi.', act:[['Boshlash', () => preset({list:quotaList(learnedTopics(d), 10), timer:0, label:'Isinish'})]]});
+    L.push({id:'x1', tm:'08:30', h:'Tanal imtihoni', what:'Pasport yoki ID-kartaning asli, login va parol; kamida 30 daqiqa oldin joyda. Tartib: grammatika (30 × 60 s, 50-soniyagacha doim javob) → o‘qish (1,5+6 / 5+8 / 7+10) → tinglash (savollar audio tugagach chiqadi, qayta eshitish faqat bir marta) → gapirish (60 s tayyorgarlikda ovoz chiqarmang) → yozish (100/15, 150/20, 200/30; oxirida tekshiruv). Javobsiz savol qoldirmang.', act:[]});
     return L;
   }
   if (ph === 'mock') {
-    L.push({id:'M', tm:isSun ? '09:00–11:30' : '07:00–09:30', h:'To‘liq Tanal mock — 5 qism, /150', what:'Eshitish → grammatika (30 × 60 s) → o‘qish (3 matn, 35 daq) → yozish (100 + 200 so‘z, 18 + 18 daq) → gapirish (6 savol). Javoblar va izohlar faqat oxirida, Claude yordami yopiq.', act:[['Mock — Claude', () => openMock(d)]], parts:['Mg', 'Ml', 'Mr', 'Mw', 'Ms']});
-    L.push({id:'m4', tm:isSun ? '16:00–17:30' : '09:30–10:30', h:'Mock tahlili', what:'Har qism natijasini ko‘ring, xatolarni «Nega?» bilan tahlil qiling, Top-5 xatoni yozuvga qo‘shing.', act:[['Mock natijasi — Claude', () => openMock(d)], ['Xatolarim', () => setView('wrong')]]});
-    L.push(T_VOC);
-    L.push(T_EVE('Kechki takror + 10 daqiqalik yozuv'));
+    const wed = !isSunD(y), mk = y.mk || {};
+    L.push(K0(wed ? '06:40–06:55' : '08:00–08:20', 'Isinish: Xatolarim 10, bitta gapirish savoli, 3 daqiqa terish'));
+    L.push({id:'M', tm:wed ? '07:00–09:57' : '08:30–11:27', h:`To‘liq Tanal mock ${mk.id || ''} — 5 bo‘lim, /150`, what:`Real tartib: grammatika (30 × 60 s; ${esc(mk.g || '')}) → o‘qish (${esc(mk.rl || mk.r || '')}; 1,5+6 / 5+8 / 7+10) → tinglash (3 qism × 6) → tanaffus 5 daq → gapirish (${esc(mk.s || '')}; 60 s + 30/45/60 s) → yozish (100/15, 150/20, 200/30). Oldingi savolga qaytilmaydi.`, act:[['Mock sahifasi', () => openMock(d)]], parts:['Mg', 'Mr', 'Ml', 'Ms', 'Mw']});
+    L.push({id:'m4', tm:wed ? '09:57–10:30' : '12:30–13:30', h:'Mock tahlili (60 daqiqa)', what:'0–10: ball va har bo‘limda 25/30 ga nisbatan yo‘qotilgan ball. 10–35: har yo‘qotilgan ballni turga ajratish (bilim yo‘q / noto‘g‘ri o‘qidim / vaqt / e’tiborsizlik / taxmin). 35–50: eng zaif insho paragrafi va gapirish javobini qayta. 50–60: top-3 xato turi → dushanba–chorshanba 07:15–07:35.', act:[['Mock natijasi', () => openMock(d)], ['Xatolarim', () => setView('wrong')]]});
+    if (wed) L.push({id:'t2', tm:'Yo‘lda · 10:30–11:00', h:'Faqat maqol kartalari', what:'Yangi material yo‘q.', act:[['Kartalar', goVoc]]});
+    else L.push({id:'t2', tm:'15:00–15:40', h:'Mock xatolaridan yangi kartalar', what:'Har xato — karta (savol / qoida va to‘g‘ri javob), har biri 3 marta to‘g‘ri aytilguncha; so‘ng navbatdagi kartalar.', act:[['Xatolarim', () => setView('wrong')], ['Kartalar', goVoc]]});
+    L.push(T_EVE(wed ? '21:15–22:00' : '21:15–21:45', wed ? 'Qisqa tahlil: xatolarni turga ajratish va 3 ta karta. Yangi material yo‘q.' : 'Yengil kartalar; 22:30 uyqu.'));
     return L;
   }
   if (ph === 'light') {
-    L.push(T_VOC);
-    L.push({id:'tL', tm:'Yo‘lda · 10:30', h:'Eshitish: bitta qism', what:'Ma’ruza yoki uzun dialog — oson, faqat quloqni sozlash uchun.', act:[['Eshitish', goL]]});
-    L.push({id:'t5', tm:'21:15–21:35', h:'Xatolarim: 10 savol', what:'Faqat takror. Ertaroq uxlang.', act:[['Boshlash', () => drillWrong(10, [d, 't5'])]]});
+    const lv = LV(y);
+    if (lv === '45') {
+      L.push(K0('07:00–07:20', 'Kartalar (faqat takror)'));
+      L.push({id:'x3', tm:'07:20–07:30', h:'10 ta oson savol', what:'Faqat ishonchli mavzulardan; 2 ta ochilish jumlasini ovoz chiqarib ayting.', act:[['Boshlash', () => preset({list:quotaList(learnedTopics(d), 10), timer:60, task:[d, 'x3'], label:'Isinish'})]]});
+      L.push({id:'x4', tm:'21:00–21:30', h:'Hujjatlar va logistika', what:'Pasport yoki ID-kartaning asli; login va parol; yo‘l va kelish vaqti (kamida 30 daqiqa oldin). 22:00 da uyqu.', act:[]});
+      return L;
+    }
+    L.push(K0(lv === '90' ? '07:00–07:30' : '07:00–07:20'));
+    const w = T_WRITE(lv === '90' ? '07:30–07:45' : '07:20–07:50'); if (w) L.push(w);
+    L.push(T_SPK(lv === '90' ? '07:50–08:05' : '07:55–08:10', lv === '90' ? 'Faqat C1/C2 savollari.' : 'Yangi narsa yo‘q.'));
+    if (lv === '90') L.push(T_READ('08:05–08:30', 'O‘qish: faqat 1-qism tezligi'));
+    else L.push({id:'t1', tm:'08:15–08:45', h:'Xatolarim: 30 savol', what:'Faqat takror, yangi mavzu yo‘q.', act:[['Boshlash', () => drillWrong(30, [d, 't1'])]]});
+    L.push(T_EVE(lv === '90' ? '21:15–21:35' : '21:15–21:45', 'Faqat kartalar. 22:00–22:30 uyqu.'));
     return L;
   }
-  if (ph === 'rev' || ph === 'after') {
-    L.push({id:'t1', tm:'07:00–08:00', h: ph === 'after' ? 'Mock tahlili: zaif mavzular — 30 savol' : 'Yig‘ma test — 30 savol, 60 s dan', what:'Barcha o‘tilgan mavzulardan, natijasi past mavzularga ko‘proq savol. Tanal’dagidek har savolga 1 daqiqa.',
-      act:[['Boshlash', () => preset({list:quotaList(learnedTopics(d), 30), timer:60, task:[d, 't1'], label:d + '-kun yig‘ma', est:true})], ['Xatolarim', () => drillWrong(20, null)]]});
-    L.push(T_LIS); L.push(T_VOC);
-    L.push({id:'t3', tm:'08:00–08:40', h:'Yozish: 2 savol, 18 + 18 daqiqa', what: W2 || 'Tanal formatida 100 va 200 so‘zlik ikki savol.', act:[['Yozish — Claude', goW]]});
-    L.push({id:'t4', tm:'08:45–09:25', h:'O‘qish: 3 matn (6 + 8 + 10 savol), 35 daqiqa', what:'Qisqa, o‘rta va uzun matn — rasmiy formatda. Avval o‘qish tezligini yozing.', act:[['O‘qish — Claude', goR]], parts:['t4r']});
-    L.push(T_SPK); L.push(T_EVE());
-    return L;
-  }
-  // o‘quv kuni
-  const isE = y.nahv[0] === 'e00', nToday = y.nahv.filter(id => T[id] && T[id].n);
-  if (y.nahv.length) L.push({id:'t1', tm:'07:00–08:00', h: isE ? 'Keng tarqalgan xatolar: oldindan test → test' : 'Nahv: oldindan test → qoida → test',
-    what: lst(y.nahv) + `. Avval 8 ta savol (qoidani o‘qimasdan), keyin qoida, keyin ${isE ? 42 : 22} ta savol: bugungi mavzu + 1, 3, 7, 14 kun oldingi mavzulardan 10 ta. Har savolga 45 soniya.`,
-    act:[['Oldindan test (8)', () => preset({list:mixList(d, nToday, 8, 0), timer:0, label:d + '-kun oldindan test'})],
-      ...y.nahv.filter(id => T[id]).map(id => ['Qoida: ' + tname(id), () => { cur = id; setView('rules'); }]),
-      ['Test (' + (isE ? 42 : 22) + ')', () => preset({list:mixList(d, nToday, isE ? 32 : 12, 10), timer:45, task:[d, 't1'], label:d + '-kun nahv'})]]});
-  else L.push({id:'t1', tm:'07:00–08:00', h:'Umumiy takror — Xatolarim', what:'Muddati kelgan xatolar, keyin 20 ta yig‘ma savol.', act:[['Xatolarim', () => drillWrong(20, null)], ['Yig‘ma (20)', () => preset({list:quotaList(learnedTopics(d), 20), timer:45, task:[d, 't1'], label:d + '-kun yig‘ma'})]]});
-  if (hasNew(d)) L.push(T_LIS);
-  L.push(T_VOC);
-  const kit = y.imla.length ? lst(y.imla) : 'imlo takrori';
-  const imlaIds = y.imla.filter(id => T[id] && T[id].n);
-  L.push({id:'t3', tm:'08:00–09:30', h: y.w2 ? 'Kitaba: imlo + yozish (2 savol, 18 + 18 daq)' : `Kitaba: imlo + ${esc(y.w.l.toLowerCase())} (${y.w.n} so‘z)`,
-    what:`${kit}. ${y.w2 ? W2 : `So‘ng vazifa: <span class="arline">${esc(y.w.t)}</span>`} Bugungi nahv qoidasidan kamida 3 ta misol ishlating.`,
-    act:[...(imlaIds.length ? [['Imlo testi (20)', () => preset({list:mixList(d, imlaIds, 15, 5), timer:45, label:d + '-kun imlo'})]] : []), ['Yozish — Claude', goW]]});
-  const sarfIds = y.sarf.filter(id => T[id] && T[id].n);
-  L.push({id:'t4', tm:'09:30–10:15', h:`O‘qish (${y.r.q} savol) + sarf`, what:(y.sarf.length ? 'Sarf: ' + lst(y.sarf) + '. ' : '') + 'Matnni vaqt bilan o‘qing, so‘ng yangi so‘zlarni lug‘atga qo‘shing.',
-    act:[['O‘qish matni — Claude', goR], ...(sarfIds.length ? [['Sarf testi (20)', () => preset({list:mixList(d, sarfIds, 15, 5), timer:45, task:[d, 't4s'], label:d + '-kun sarf'})]] : [])],
-    parts: sarfIds.length ? ['t4r', 't4s'] : ['t4r']});
-  if (hasSpeak(d)) L.push(T_SPK);
-  L.push(T_EVE());
+  // o‘quv va yarim mock kunlari (dushanba–shanba)
+  const half = ph === 'half', gt = tid.length && !half;
+  L.push(K0('07:00–07:15'));
+  L.push({id:'t1', tm: half ? '07:15–07:50' : '07:15–08:05', h: gt ? 'Grammatika: qoida → 30 savol × 60 s → tahlil' : 'Grammatika: aralash 30 savol × 60 s',
+    what:(gt ? lst(tid) + '. ' : '') + (m.G ? 'Material: ' + arW(esc(m.G)) + '. ' : '') + (gt ? '10 daq qoida (KT betlari, 5 qatorli xulosa) → 30 savol: bugungi mavzudan 20 + 1/3/8/18 kun oldingilardan 10 → 10 daq tahlil, har xato kartaga.' : 'Hamma o‘tilgan mavzulardan, zaiflariga ko‘proq. Har savolga 50-soniyagacha javob belgilang.'),
+    act: gt ? [['Test (30)', () => preset({list:mixList(d, tid, 20, 10), timer:60, task:[d, 't1'], label:d + '-kun grammatika', est:true})], ...tid.map(id => ['Qoida: ' + tname(id), () => { cur = id; setView('rules'); }])]
+            : [['Test (30)', () => preset({list:quotaList(learnedTopics(d), 30), timer:60, task:[d, 't1'], label:d + '-kun aralash', est:true})], ['Xatolarim', () => drillWrong(20, null)]]});
+  const w = T_WRITE(half ? '07:55–09:00' : '08:10–09:15'); if (w) L.push(w);
+  L.push(T_READ(half ? '09:05–09:45' : '09:20–09:45', half ? 'O‘qish: 3 qism, 18 savol (1,5+6 / 5+8 / 7+10)' : null, half));
+  L.push(T_SPK('09:45–10:00'));
+  if (y.typ) L.push({id:'tK', tm:'10:00–10:15', h:'Arabcha terish mashqi', what:'Imtihonda insholar klaviaturada yoziladi. 3 daqiqalik test: ≥ 25 so‘z/daq va ≥ 95 % aniqlik — 10 daq tezlik mashqi yetadi; 15–24 — 15 daq; 15 dan kam — 20 daq Noqta darslari.', act:[['Terish testi (3 daq)', () => setView('typing')]]});
+  L.push(T_LIS); L.push(T_VOC); L.push(T_EVE());
   return L;
 }
 function markTask(d, id, v, pct){
@@ -1180,14 +1218,15 @@ function renderToday(){
   const done = L.filter(t => taskDone(d, t)).length, cnt = L.filter(t => t.act.length || t.diary).length;
   const nt = nowTask(d, L);
   const actBtns = (t, big) => t.act.map((a, k) => { ACTS.push(a[1]); return `<button class="btn ${k === 0 || a[0] === 'Boshlash' || a[0].startsWith('Test') ? '' : 'alt'} ${big ? '' : 'sm'}" data-a="${ACTS.length - 1}">${esc(a[0])}</button>`; }).join('');
-  const label = y.ph === 'mock' ? '<span class="badge">sinov</span>' : (y.ph === 'exam' ? '<span class="badge">imtihon</span>' : (y.ph === 'rev' || y.ph === 'after' ? '<span class="badge navy">takror</span>' : (y.ph === 'light' ? '<span class="badge navy">yengil</span>' : '')));
+  const label = y.ph === 'mock' ? `<span class="badge">mock ${(y.mk || {}).id || ''}</span>` : (y.ph === 'exam' ? '<span class="badge">imtihon</span>' : (y.ph === 'half' ? '<span class="badge navy">yarim mock</span>' : (y.ph === 'light' ? '<span class="badge navy">yengil</span>' : (y.ph === 'rest' ? '<span class="badge navy">dam</span>' : ''))));
   const mt = dayMet(d), stk = streakNow();
   let h = `<header class="hero"><div class="hrow"><div><span class="hd">${esc(y.wd)}, ${fmtDate(y.date)}${d !== ti ? ' · tanlangan kun' : ''}</span><span class="hn">${d}-kun${label}</span></div>
-      <div class="hr"><b>${Math.max(0, EXAM - d)}</b><span>kun imtihongacha</span></div></div>
+      <div class="hr"><b>${Math.max(0, examDay() - d)}</b><span>kun imtihongacha</span></div></div>
     ${cnt ? `<div class="hrow2"><span>Zanjir: ${stk} kun</span><div class="htrack"><i style="width:${done / cnt * 100}%"></i>${mt && mt.need < cnt ? `<s style="left:${mt.need / cnt * 100}%"></s>` : ''}</div><span>${done}/${cnt}</span></div>
     ${d === ti && mt ? (mt.met ? '<div class="hneed">Bugungi kun zanjirga qo‘shildi.</div>' : `<div class="hneed">Zanjir uchun bugun kamida ${mt.need} ta vazifa — yana ${mt.need - mt.n} ta.</div>`) : ''}` : ''}
     <div class="hnav"><button type="button" id="pv" aria-label="Oldingi kun" ${d <= 1 ? 'disabled' : ''}>${IC.left}</button>${d !== ti ? '<button type="button" id="tdy">Bugunga qaytish</button>' : ''}<button type="button" id="nx" aria-label="Keyingi kun" ${d >= ND ? 'disabled' : ''}>${IC.right}</button></div></header>
     <p class="focus">${esc(y.note)}</p>`;
+  h += matHtml(y);
   if (nt) {
     const info = (PS.done['d' + d] || {})[nt.id];
     h += `<div class="now"><div class="eyebrow">${d === ti ? 'Hozir' : 'Navbatdagi'}</div><div class="tm">${esc(nt.tm)}${info && info.p !== undefined ? ` · natija ${info.p}%` : ''}</div><h3>${nt.h}</h3><div class="what">${nt.what}</div><div class="cta">${actBtns(nt, true)}</div></div>`;
@@ -1202,7 +1241,7 @@ function renderToday(){
       <div class="body"><div class="tmfull">${esc(t.tm)}</div><div class="what">${t.what}</div>${t.act.length ? `<div class="cta">${actBtns(t)}</div>` : ''}
       ${t.diary ? diaryHtml(d) : ''}</div></details>`;
   });
-  h += `</div><div class="minday"><button class="btn ghost sm" id="minb">${PS.min && PS.min['d' + d] ? 'To‘liq kunga qaytish' : 'Charchadim — minimal kun (≈45 daq)'}</button><span class="note">Jadval ish (11:00–17:00) va universitet (18:00–21:00) vaqtidan tashqarida; vaqtlarni o‘zingizga moslang.</span></div>`;
+  h += `</div><div class="minday"><button class="btn ghost sm" id="minb">${PS.min && PS.min['d' + d] ? 'To‘liq kunga qaytish' : 'Charchadim — minimal kun (≈30 daq)'}</button><span class="note">Jadval ish (11:00–17:00) va universitet (18:00–21:00) vaqtidan tashqarida; vaqtlarni o‘zingizga moslang.</span></div>`;
   $('#view').innerHTML = h;
   $('#view').querySelectorAll('.ck').forEach(b => b.onclick = e => { e.preventDefault(); e.stopPropagation(); markTask(d, b.dataset.t, !isDoneRaw(d, b.dataset.t)); renderToday(); });
   $('#view').querySelectorAll('[data-a]').forEach(b => b.onclick = () => ACTS[+b.dataset.a]());
@@ -1233,26 +1272,29 @@ function bindDiary(d){
   $('#dgo').onclick = () => { clearInterval(dTimer); let left = 600; const tick = () => { const el = $('#dt'); if (!el) return clearInterval(dTimer); el.textContent = `${Math.floor(left / 60)}:${pad2(left % 60)}`; el.classList.toggle('low', left < 60); if (left-- <= 0) { clearInterval(dTimer); el.textContent = 'Vaqt tugadi'; } }; tick(); dTimer = setInterval(tick, 1000); di.focus(); };
 }
 function renderPlan(){
-  const ti = todayIdx();
-  let h = `<div><div class="eyebrow">${ND} kunlik reja · ${fmtDate(DAYS[0].date)} — ${fmtDate(DAYS[ND - 1].date)} (imtihon)</div><h1 class="tt"><span>Tanal: nahv, sarf va kitaba ustuvor</span></h1>
-    <p class="note">1–28-kun: o‘quv bosqichi (yakshanba — sinov). 29–38-kun: takror va mock bosqichi: to‘liq mock 13-dekabr (yakshanba) va 16-dekabr (ertalab, ishdan oldin), 18–19-dekabr yengil. 39-kun — imtihon. Ish 11:00–17:00, universitet 18:00–21:00 — vazifalar ertalab va kechqurun.</p></div>
+  const ti = todayIdx(), ex = examDay();
+  let h = `<div><div class="eyebrow">${ND} kunlik reja · ${fmtDate(DAYS[0].date)} — ${fmtDate(DY(ex).date)} (imtihon)</div><h1 class="tt"><span>Tanal C2: real format bo‘yicha reja</span></h1>
+    <p class="note">Har yakshanba 08:30 da to‘liq mock (15, 22, 29-noyabr; 6, 13-dekabr) va 16-dekabr 07:00 da M6; shanba — yarim mock. 5-dekabrda yangi grammatika tugaydi, 15-dekabrdan keyin yangi karta yo‘q. Ish kunlari: 07:00–10:30 ertalabki blok, yo‘lda tinglash va kartalar, 21:15–22:30 kechki xotira bloki. Ish 11:00–17:00, universitet 18:00–21:00.</p>
+    <div class="chips" style="margin:8px 0 4px"><span class="note">Imtihon sanasi:</span><button class="chip" data-ex="0" aria-pressed="${!PS.ex19}">20-dekabr, yakshanba</button><button class="chip" data-ex="1" aria-pressed="${!!PS.ex19}">19-dekabr, shanba</button></div>
+    <p class="note" style="margin:0 0 10px">Hech bir markaz dekabr sanasini hali e’lon qilmagan — markazdan tasdiqlang. 19-dekabr tanlansa, yengil kunlar bir kun oldinga suriladi va 20-dekabr dam olish kuni bo‘ladi.</p></div>
     <div class="cal">${['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya'].map(x => `<div class="hd">${x}</div>`).join('')}`;
   const off = (START.getDay() + 6) % 7;
   for (let i = 0; i < off; i++) h += '<div class="cell pad"></div>';
-  DAYS.forEach(y => {
-    const p = dayProgress(y.d), ph = y.ph || 'learn';
-    const lbl = ph === 'mock' ? 'To‘liq mock /150' : ph === 'exam' ? 'IMTIHON · 08:00' : ph === 'light' ? 'Yengil kun' : (ph === 'rev' || ph === 'after') ? 'Takror' + (ph === 'after' ? ' · mock tahlili' : '') : [...y.nahv, ...y.sarf, ...y.imla].map(tname).join(' · ') || 'Umumiy takror';
-    const wl = y.w2 ? '2 savol: 100 + 200' : (ph === 'learn' || (ph === 'mock' && y.d <= 30) ? `${y.w.l}, ${y.w.n}` : '');
+  DAYS.forEach(y0 => {
+    const y = DY(y0.d), p = dayProgress(y.d), ph = y.ph || 'learn';
+    const lbl = ph === 'mock' ? `Mock ${(y.mk || {}).id || ''} /150` : ph === 'exam' ? 'IMTIHON · 08:30' : ph === 'rest' ? 'Dam' : ph === 'light' ? 'Yengil kun' : ph === 'half' ? 'Yarim mock' : ([...y.nahv, ...y.sarf, ...y.imla].map(tname).join(' · ') || 'Aralash grammatika');
+    const wl = (y.wl || []).map(w => w.n).join('/');
     h += `<button class="cell ${ph === 'mock' || ph === 'exam' ? 'mock' : ''} ${y.d === ti ? 'today' : ''}" data-d="${y.d}"><span class="dn"><b>${y.d}</b><span>${fmtDate(y.date)}</span></span><small>${esc(lbl)}</small>${wl ? `<small style="color:var(--muted)">Yozish: ${esc(wl)}</small>` : ''}<span class="pb"><i style="width:${p * 100}%"></i></span></button>`;
   });
   h += `</div>`;
   $('#view').innerHTML = h;
   $('#view').querySelectorAll('.cell[data-d]').forEach(c => c.onclick = () => { selDay = +c.dataset.d; syncDay(selDay); setView('today'); });
+  $('#view').querySelectorAll('[data-ex]').forEach(b => b.onclick = () => { PS.ex19 = b.dataset.ex === '1'; savePlan(); renderPlan(); });
 }
 /* E11: arabcha qismlarga lang="ar" */
 function paintAr(){ document.querySelectorAll('.ar:not([lang]),.arline:not([lang])').forEach(e => e.setAttribute('lang', 'ar')); }
 
-/* ---------- writing (A2: Tanal formati — 100 + 200 so‘z, 18 + 18 daqiqa) ---------- */
+/* ---------- writing (real format: 3 insho — 100/150/200 so‘z, 15/20/30 daqiqa) ---------- */
 let writeDay = selDay, wPart = 0, wTimer = null;
 const words = s => (String(s || '').trim().match(/\S+/g) || []).length;
 const HAR = /[ً-ْٰـ]/g;
@@ -1260,11 +1302,7 @@ const norm = s => String(s || '').replace(HAR, '').replace(/[إأآ]/g, 'ا').re
 const OFF_INSTR = n => `اكتب بما لا يزيد على (${n}) كلمة مستفيدًا من الأفكار والمعلومات التي تليه، فضلًا عن الأمور الآتية: (الاستخدام الصحيح لعلامات الترقيم، والإملاء، واستخدام المفردات المناسبة والدالة، وتنظيم الفقرات والنص ككل، والتعبير عن الأفكار بوضوح، ومراعاة تنمية الأفكار، ومعالجة الموضوع.)`;
 function wParts(d){
   const y = DY(d), dd = pad2(d);
-  if (y.w2) return [
-    {key:'e' + dd + 'a', title:y.w2.q1.title, n:y.w2.q1.n || 100, pts:y.w2.q1.pts || [], min:18, lab:'1-savol · 100 so‘z'},
-    {key:'e' + dd + 'b', title:y.w2.q2.title, n:y.w2.q2.n || 200, pts:y.w2.q2.pts || [], min:18, lab:'2-savol · 200 so‘z'}];
-  if (!y.w.t) return [];
-  return [{key:'e' + dd, title:y.w.t, n:y.w.n, pts:[], prompt:y.w.p, min:y.mock ? 35 : 30, lab:`${y.w.n} so‘z`, old:true}];
+  return (y.wl || []).map((w, i, A) => ({key:'e' + dd + 'w' + w.n, title:w.t, n:w.n, pts:w.pts || [], min:w.min, lab:(A.length > 1 ? (i + 1) + '-insho · ' : '') + w.n + ' so‘z'}));
 }
 const wDocs = d => wParts(d).map(p => dayDoc(p.key));
 function todayWords(d){ const y = DY(d); if (y.v[1] > y.v[0]) return PL.vocab.slice(y.v[0], Math.min(y.v[1], y.v[0] + 10)).map(v => v[0]); return (VS.h || []).slice(0, 10).map(i => (vItem(i) || [''])[0]).filter(Boolean); }
@@ -1293,10 +1331,10 @@ function renderWrite(){
     return bindWNav();
   }
   if (wPart >= parts.length) wPart = 0;
-  if (mk && parts.length > 1) { const a = dayDoc(parts[0].key) || {}; wPart = a.locked ? 1 : 0; }
+  if (mk && parts.length > 1) { const i = parts.findIndex(p => !(dayDoc(p.key) || {}).locked); wPart = i < 0 ? parts.length - 1 : i; }
   const P1 = parts[wPart], k = P1.key, doc = dayDoc(k) || {text:''};
   const rulesToday = y.nahv.filter(id => T[id] && id !== 'e00'), locked = !!doc.locked && mk;
-  const tabs = parts.length > 1 ? `<div class="chips">${parts.map((p, i) => { const pd = dayDoc(p.key) || {}; return `<button class="chip" data-wp="${i}" aria-pressed="${i === wPart}" ${mk ? 'disabled' : ''}>${p.lab}${pd.fb ? ' · ' + (pd.fb.tanal ?? '') + '/15' : (pd.locked ? ' · topshirildi' : '')}</button>`; }).join('')}</div>` : '';
+  const tabs = parts.length > 1 ? `<div class="chips">${parts.map((p, i) => { const pd = dayDoc(p.key) || {}; return `<button class="chip" data-wp="${i}" aria-pressed="${i === wPart}" ${mk ? 'disabled' : ''}>${p.lab}${pd.fb ? ' · ' + (pd.fb.tanal ?? '') + '/' + (pd.fb.of || 15) : (pd.locked ? ' · topshirildi' : '')}</button>`; }).join('')}</div>` : '';
   const prompt = P1.old ? `<div class="prompt ar">${esc(P1.prompt)}</div>`
     : `<div class="prompt ar" style="font-size:18px">${esc(OFF_INSTR(P1.n))}</div><div class="prompt ar" style="font-weight:700;margin-top:6px">(${esc(P1.title)})</div>
        ${P1.pts.length ? `<div class="ar" style="font-weight:700;margin-top:8px;text-align:right">الأفكار والمعلومات:</div><ul class="ex" dir="rtl" style="border-right:3px solid var(--navy);padding-right:14px">${P1.pts.map(x => `<li class="ar">${esc(x)}</li>`).join('')}</ul>` : ''}`;
@@ -1309,12 +1347,12 @@ function renderWrite(){
     <div class="wbar"><span class="timer" id="wt">${P1.min}:00</span><span>So‘z: <b id="wn">0</b> / ${P1.n}</span><span id="wover" style="color:var(--crimson)"></span><span id="wsave" style="margin-left:auto">${doc.ts ? 'saqlangan' : ''}</span></div>
     <div><textarea class="arw" id="essay" dir="rtl" lang="ar" placeholder="ابدأ الكتابة هنا…" aria-label="Javob matni" ${locked ? 'readonly' : ''}>${esc(doc.text)}</textarea></div>
     <div class="cta">${!doc.end || doc.end < Date.now() - 1 ? `<button class="btn alt" id="tstart">Vaqtni boshlash (${P1.min} daq.)</button>` : ''}
-      ${mk ? (locked ? '' : `<button class="btn red" id="lock">${wPart === 0 && parts.length > 1 ? 'Topshirish va 2-savolga o‘tish' : 'Topshirish'}</button>`)
+      ${mk ? (locked ? '' : `<button class="btn red" id="lock">${wPart < parts.length - 1 ? 'Topshirish va keyingi inshoga o‘tish' : 'Topshirish'}</button>`)
            : `<button class="btn red" id="check" ${isPend('chk' + k) ? 'disabled' : ''}>Claude tekshirsin</button><button class="btn alt" id="model">Namunaviy javob</button>`}
       <span class="note" id="cst">${isPend('chk' + k) ? waitHtml('chk' + k, 'Tekshirilmoqda', '30–60 s') : ''}</span></div>
-    ${!mk && !doc.fb ? `<div class="chips" aria-label="Taxminiy baho"><span class="note">Tekshiruvdan oldin taxminingiz (/15):</span>${[6, 8, 10, 12, 14].map(v => `<button class="chip" data-est="${v}" aria-pressed="${doc.est === v}">${v}</button>`).join('')}</div>` : ''}
+    ${!mk && !doc.fb ? `<div class="chips" aria-label="Taxminiy baho"><span class="note">Tekshiruvdan oldin taxminingiz (/10):</span>${[5, 6, 7, 8, 9].map(v => `<button class="chip" data-est="${v}" aria-pressed="${doc.est === v}">${v}</button>`).join('')}</div>` : ''}
     <div id="fbw"></div><div id="mdl"></div>
-    ${mk && parts.every(p => (dayDoc(p.key) || {}).locked) ? `<div class="cta"><button class="btn red" id="mgrade" ${parts.some(p => isPend('chk' + p.key)) ? 'disabled' : ''}>Ikkala javobni Claude baholasin</button><button class="btn alt" id="toMock">Mock sahifasi</button><span class="note" id="mst"></span></div>` : ''}`;
+    ${mk && parts.every(p => (dayDoc(p.key) || {}).locked) ? `<div class="cta"><button class="btn red" id="mgrade" ${parts.some(p => isPend('chk' + p.key)) ? 'disabled' : ''}>Uchala javobni Claude baholasin</button><button class="btn alt" id="toMock">Mock sahifasi</button><span class="note" id="mst"></span></div>` : ''}`;
   const ta = $('#essay');
   const upd = () => { const n = words(ta.value); $('#wn').textContent = n; $('#wn').style.color = n > P1.n ? 'var(--crimson)' : (n >= P1.n * 0.8 ? 'var(--ok)' : ''); $('#wover').textContent = n > P1.n ? 'chegaradan oshdi' : ''; };
   upd();
@@ -1329,7 +1367,7 @@ function renderWrite(){
   $('#view').querySelectorAll('[data-est]').forEach(b => b.onclick = () => { setDayDoc(k, Object.assign({}, dayDoc(k) || {}, {est:+b.dataset.est})); renderWrite(); });
   const ch = $('#check'); if (ch) ch.onclick = () => checkEssay(d, wPart);
   const lk = $('#lock'); if (lk) lk.onclick = () => { setDayDoc(k, Object.assign({}, dayDoc(k) || {}, {text:ta.value, locked:true})); clearInterval(wTimer); renderWrite(); window.scrollTo({top:0}); };
-  const mg = $('#mgrade'); if (mg) mg.onclick = async () => { mg.disabled = true; $('#mst').textContent = 'Ikkala javob tekshirilmoqda…'; await Promise.all(parts.map((p, i) => dayDoc(p.key).fb ? null : checkEssay(d, i, true))); mockWriteSave(d); renderWrite(); };
+  const mg = $('#mgrade'); if (mg) mg.onclick = async () => { mg.disabled = true; $('#mst').textContent = 'Javoblar tekshirilmoqda…'; await Promise.all(parts.map((p, i) => dayDoc(p.key).fb ? null : checkEssay(d, i, true))); mockWriteSave(d); renderWrite(); };
   const tm = $('#toMock'); if (tm) tm.onclick = () => openMock(d);
   const md = $('#model'); if (md) md.onclick = () => showModel(d, P1);
   bindWNav();
@@ -1367,8 +1405,8 @@ function showFeedback(k, doc){
   const fb = doc.fb, text = doc.checked || doc.text, sc = fb.scores || {}, keys = Object.keys(sc);
   const stage = doc.stage === 2 ? 2 : 1, errs = fb.errors || [];
   const sum = keys.reduce((s, x) => s + (+sc[x] || 0), 0);
-  let h = `<section class="blk"><h4 style="color:var(--navy)">Claude bahosi · taxminiy daraja: ${esc(fb.level || '—')}${doc.est ? ` · taxminingiz ${doc.est}/15` : ''}</h4>
-    <div class="scores">${fb.tanal !== undefined ? `<div><b>${fb.tanal}/15</b><span>Tanal bahosi</span></div>` : `<div><b>${sum}/${keys.length * 5}</b><span>jami</span></div>`}${keys.map(x => `<div><b>${sc[x] ?? '—'}/5</b><span>${SCL[x] || x}</span></div>`).join('')}</div></section>`;
+  let h = `<section class="blk"><h4 style="color:var(--navy)">Claude bahosi · taxminiy daraja: ${esc(fb.level || '—')}${doc.est ? ` · taxminingiz ${doc.est}/${fb.of || 15}` : ''}</h4>
+    <div class="scores">${fb.tanal !== undefined ? `<div><b>${fb.tanal}/${fb.of || 15}</b><span>Tanal bahosi</span></div>` : `<div><b>${sum}/${keys.length * 5}</b><span>jami</span></div>`}${keys.map(x => `<div><b>${sc[x] ?? '—'}/5</b><span>${SCL[x] || x}</span></div>`).join('')}</div></section>`;
   if (fb.top3 && fb.top3.length) h += `<section class="blk fix"><h4>3 ta asosiy qolip</h4><ul>${fb.top3.map(x => `<li>${esc(x)}</li>`).join('')}</ul></section>`;
   if (fb.target && ((fb.target.rules || []).length || (fb.target.words || []).length)) { const tr = fb.target.rules || [];
     h += `<section class="blk"><h4>Bugungi qoida amalda: ${tr.filter(r => r.ok).length}/${tr.length}</h4><ul>${tr.map(r => `<li>${r.ok ? '✓' : '—'} <span class="ar">${esc(r.r)}</span>${r.x ? ' · <span class="ar">' + esc(r.x) + '</span>' : ''}</li>`).join('')}</ul>${(fb.target.words || []).length ? `<p class="note" style="margin:6px 0 0">Ishlatilgan bugungi so‘zlar: <span class="ar">${esc(fb.target.words.join('، '))}</span></p>` : ''}</section>`; }
@@ -1424,6 +1462,7 @@ async function checkEssay(d, part, quiet){
   const rulesToday = y.nahv.filter(id => T[id] && id !== 'e00').map(id => T[id].title + ' (' + T[id].uz + ')');
   const focus = topErrors(5).map(x => x.r + (x.ex ? ' (masalan: ' + x.ex.x + ' → ' + x.ex.f + ')' : ''));
   const prompt = `Sen Tanal (التنال العربي) imtihonining yozish qismini baholovchi tajribali imtihonchisan. Talabaning darajasini oldindan bilmaysan — faqat matnga qarab baholaysan.
+Real format (2026): 3 insho — 100, 150 va 200 so‘z (15/20/30 daqiqa), har biri 10 ball, jami 30. Ko‘rsatilgan so‘z sonidan oshirib yozish jazolanmaydi, lekin cho‘zish (الإطالة) mezonda bor. C2 uchun har inshoda taxminan 8–9/10 kerak: deyarli xatosiz imlo va tinish, barcha yo‘naltiruvchi g‘oyalar yoritilgan.
 Topshiriq: «${P1.title}». ${P1.old ? 'Vazifa: ' + P1.prompt : 'Rasmiy shart: ' + OFF_INSTR(P1.n)}
 ${P1.pts.length ? 'Yo‘naltiruvchi fikrlar:\n' + P1.pts.map(x => '- ' + x).join('\n') + '\n' : ''}Hajm chegarasi: ${P1.n} so‘z. Matndagi so‘zlar: ${words(text)}.
 Talaba matni:
@@ -1435,7 +1474,7 @@ CEFR o‘lchovi: B2 — tushunmovchilikka olib keladigan xato yo‘q, fikrlar an
 ${rulesToday.length ? 'Bugungi qoidalar: ' + rulesToday.join('; ') + '. ' : ''}${todayWords(d).length ? 'Bugungi so‘zlar: ' + todayWords(d).join('، ') + '. ' : ''}Talaba ularni ishlatdimi — "target"da ayt.
 ${focus.length ? 'Hafta fokusi (talabaning takrorlanuvchi xatolari): ' + focus.join('; ') + '. Ularni alohida tekshir, qaytgan bo‘lsa "repeat"da ayt.\n' : ''}${(PL.lah || []).length ? 'Arab tilini o‘rganuvchilarning tipik xatolari (Lahlali) — matnda shular bormi, alohida qara: ' + PL.lah.slice(0, 40).map(x => x.x + ' → ' + x.f).join('; ') + '.\n' : ''}
 Faqat bitta JSON qaytar, boshqa hech narsa yozma:
-{"level":"B1|B2|B2+|C1|C1+|C2","tanal":0-15,"scores":{"nahv":0-5,"sarf":0-5,"imla":0-5,"tarqim":0-5,"lugat":0-5,"tuzilish":0-5,"rivoj":0-5,"qamrov":0-5,"hajm":0-5},
+{"level":"B1|B2|B2+|C1|C1+|C2","tanal":0-10,"scores":{"nahv":0-5,"sarf":0-5,"imla":0-5,"tarqim":0-5,"lugat":0-5,"tuzilish":0-5,"rivoj":0-5,"qamrov":0-5,"hajm":0-5},
 "top3":["3 ta asosiy takrorlanuvchi qolip, o‘zbekcha"],
 "errors":[{"x":"matndan AYNAN ko‘chirilgan xato parcha (1–4 so‘z)","f":"to‘g‘ri shakli","k":"nahv|sarf|imla|tarqim|lugat|uslub","r":"qoida nomi arabcha (masalan: كان وأخواتها، العدد والمعدود، همزة القطع)","h":"ishora: to‘g‘ri shaklni aytmasdan, nimani tekshirish kerakligini 1 jumlada ayt (o‘zbekcha)","uz":"to‘liq izoh: qoida va nega (o‘zbekcha)","p":1}],
 "target":{"rules":[{"r":"qoida","ok":true,"x":"talabaning misoli yoki bo‘sh"}],"words":["ishlatilgan bugungi so‘zlar"]},
@@ -1447,6 +1486,7 @@ Qoidalar: barcha xatolarni top (ko‘pi bilan 25), ayniqsa i’rob, kana/inna xa
   try {
     const fb = await s.json(prompt, {modelTier:'default', cache:false});
     if (!fb || !Array.isArray(fb.errors)) throw {code:'invalid_json'};
+    fb.of = 10; fb.tanal = Math.max(0, Math.min(10, +fb.tanal || 0));
     (fb.errors || []).sort((a, b) => (a.p || 2) - (b.p || 2));
     const cur = dayDoc(k) || {};
     setDayDoc(k, Object.assign({}, cur, {text, fb, checked:text, stage:1, self:null, score:fb.tanal ?? null}));
@@ -1457,31 +1497,44 @@ Qoidalar: barcha xatolarni top (ko‘pi bilan 25), ayniqsa i’rob, kana/inna xa
   if (view === 'write' && writeDay === d && !quiet) { renderWrite(); const f = $('#fbw'); if (f) f.scrollIntoView({behavior:'smooth', block:'start'}); }
 }
 
-/* ---------- reading (A4: rasmiy format — qisqa 6, o‘rta 8, uzun 10 savol) ---------- */
-let readDay = selDay, rTimer = null, readOff = false;
-const RLEN = {6:'90–110', 8:'200–230', 10:'280–320'}, RTYPE = {6:'short', 8:'medium', 10:'long'}, RNAME = {short:'Qisqa matn', medium:'O‘rta matn', long:'Uzun matn'};
-function readKey(){ return readOff ? 'roff' : 'r' + pad2(readDay); }
+/* ---------- reading (real format: 3 matn × 6 savol, 1,5+6 / 5+8 / 7+10 daqiqa, orqaga qaytilmaydi) ---------- */
+let readDay = selDay, rTimer = null, readOff = false;   // readOff: false — kunlik (Claude matni), true — rasmiy namuna, 'tm' — taymer, 'PR2'… — PDF mock
+const RLEN = {short:'90–120', medium:'200–250', long:'300–380'}, RNAME = {short:'Qisqa matn', medium:'O‘rta matn', long:'Uzun matn'};
+const RTYPES = ['short', 'medium', 'long'], RPART = [[1.5, 6], [5, 8], [7, 10]], RMIN = {short:7.5, medium:13, long:17};
+const rmImg = id => (MED.read || []).find(x => x.id === id);
+function readKey(){ return readOff === true ? 'roff' : (typeof readOff === 'string' ? 'rx' + readOff.toLowerCase() : 'r' + pad2(readDay)); }
 function readTexts(p){ return p.texts || [{type:'', title:p.title, text:p.text, q:p.q}]; }
+function openOffRead(){
+  readOff = true; const d0 = dayDoc('roff');
+  if (!d0 || (!d0.sub && readTexts(d0.p).reduce((s, t) => s + t.q.length, 0) !== 18)) setDayDoc('roff', {p:{texts:OFF.read.map(t => Object.assign({}, t, {q:t.q.slice(0, 6)}))}, ans:[], sub:false});
+  setView('read');
+}
 function renderRead(){
   clearInterval(rTimer);
+  if (readOff === 'tm') return renderReadTimer();
+  if (typeof readOff === 'string') return renderReadImg();
   const d = readDay, y = DY(d), k = readKey(), doc = dayDoc(k), mk = MOCK.on && MOCK.d === d && !readOff;
-  const multi = y.r.q >= 24 || mk;
+  const multi = mk || readOff === true || y.ph === 'half';
   const nav = mk || readOff ? '' : `<div class="nav"><button id="pv" ${d <= 1 ? 'disabled' : ''} aria-label="Oldingi">‹</button><button id="nx" ${d >= ND ? 'disabled' : ''} aria-label="Keyingi">›</button></div>`;
-  const head = `<div class="daybar"><div><div class="eyebrow">O‘qish · ${readOff ? 'Tanal rasmiy namunasi' : d + '-kun'}${mk ? ' · mock' : ''} · ${multi || readOff ? '3 matn, 35 daqiqa' : esc(y.r.g) + ' matn · ' + y.r.q + ' savol'}</div><h1 class="tt"><span>${doc && doc.p && !doc.p.texts ? `<span class="ar">${esc(doc.p.title)}</span>` : 'Tanal formatida o‘qish'}</span></h1></div>${nav}</div>`;
+  const head = `<div class="daybar"><div><div class="eyebrow">O‘qish · ${readOff ? 'Tanal rasmiy namunasi (har matndan 6 savol)' : d + '-kun'}${mk ? ' · mock' : ''} · ${multi ? '3 matn × 6 savol, 37,5 daqiqa' : '1 matn · 6 savol'}</div><h1 class="tt"><span>${doc && doc.p && !doc.p.texts ? `<span class="ar">${esc(doc.p.title)}</span>` : 'Tanal formatida o‘qish'}</span></h1></div>${nav}</div>`;
   if (!doc || !doc.p) {
-    const pk = 'gen' + k;
-    $('#view').innerHTML = head + `<section class="blk"><p style="margin-top:0">Tanal o‘qish bo‘limi: qisqa matn (6 savol), o‘rta matn (8 savol) va uzun matn (10 savol), jami 30–35 daqiqa. Matnlar — hikoya, e’lon, maqola yoki gazeta xulosasi. Claude siz uchun ${multi ? 'uchala matnni' : RNAME[RTYPE[y.r.q]] ? RNAME[RTYPE[y.r.q]].toLowerCase() + 'ni' : 'matnni'} rasmiy uzunlik va savol turlari bilan tuzadi.</p>
-      <div class="cta"><button class="btn red" id="gen" ${isPend(pk) ? 'disabled' : ''}>Matn yaratish</button><span class="note" id="gst">${isPend(pk) ? waitHtml(pk, 'Matn tuzilmoqda', multi ? '1–2 daqiqa' : '30–60 s') : ''}</span></div></section>
-      ${OFF.read && OFF.read.length && !mk ? `<section class="blk add"><h4>Tanal rasmiy namunasi</h4><p class="note" style="margin:0 0 8px">Rasmiy qo‘llanmadagi ${OFF.read.length} ta matn va savollari.</p><button class="btn alt sm" id="offr">Rasmiy namunani ochish</button></section>` : ''}`;
+    const pk = 'gen' + k, imgs = MED.read || [];
+    $('#view').innerHTML = head + `<section class="blk"><p style="margin-top:0">Real imtihon: 3 matn, har birida 6 savol (jami 18). Vaqt: qisqa matn 1,5 + 6, o‘rta 5 + 8, uzun 7 + 10 daqiqa (o‘qish + javob). Claude siz uchun ${multi ? 'uchala matnni' : 'bitta matnni'} shu formatda tuzadi.</p>
+      <div class="cta"><button class="btn red" id="gen" ${isPend(pk) ? 'disabled' : ''}>Matn yaratish</button><button class="btn alt" id="rtm">O‘qish taymeri (PDF uchun)</button><span class="note" id="gst">${isPend(pk) ? waitHtml(pk, 'Matn tuzilmoqda', multi ? '1–2 daqiqa' : '30–60 s') : ''}</span></div></section>
+      ${imgs.length && !mk ? `<section class="blk add"><h4>PDF o‘qish mocklari (18 savol, kalitli)</h4><p class="note" style="margin:0 0 8px">Mocklar uchun ajratilgan — oldindan ishlamang: ${imgs.map(x => esc(x.id)).join(', ')}.</p><div class="chips">${imgs.map(x => { const r = dayDoc('rx' + x.id.toLowerCase()); return `<button class="chip" data-rimg="${esc(x.id)}">${esc(x.id)}${r && r.sub ? ' · ' + r.score + '/' + r.n : ''}</button>`; }).join('')}</div></section>` : ''}
+      ${OFF.read && OFF.read.length && !mk ? `<section class="blk add"><h4>Tanal rasmiy namunasi</h4><p class="note" style="margin:0 0 8px">Rasmiy qo‘llanmadagi ${OFF.read.length} ta matn, har biridan 6 savol — yangi vaqt bilan.</p><button class="btn alt sm" id="offr">Rasmiy namunani ochish</button></section>` : ''}`;
     bindDayNav();
     $('#gen').onclick = () => genReading(d, multi);
-    const or = $('#offr'); if (or) or.onclick = () => { readOff = true; if (!dayDoc('roff')) setDayDoc('roff', {p:{texts:OFF.read}, ans:[], sub:false}); renderRead(); };
+    $('#rtm').onclick = () => { readOff = 'tm'; renderRead(); };
+    $('#view').querySelectorAll('[data-rimg]').forEach(b => b.onclick = () => { readOff = b.dataset.rimg; renderRead(); });
+    const or = $('#offr'); if (or) or.onclick = () => openOffRead();
     return;
   }
   const p = doc.p, texts = readTexts(p), ans = doc.ans || [], sub = !!doc.sub;
   const allQ = [], tot = texts.reduce((s, t) => s + t.q.length, 0), twords = texts.reduce((s, t) => s + words(t.text), 0);
+  const mins = multi ? 37.5 : (RMIN[texts[0].type] || 7.5);
   let off = 0;
-  let h = head + `<div class="wbar"><span class="timer" id="rt">${doc.end ? '' : (multi || readOff ? '35:00' : Math.round(tot * 1.5) + ':00')}</span>${sub ? `<span class="badge navy">${doc.score}/${tot}</span>` : ''}${doc.wpm ? `<span>${doc.wpm} so‘z/daq</span>` : ''}<span style="margin-left:auto" class="note" id="gst"></span></div>
+  let h = head + `<div class="wbar"><span class="timer" id="rt">${doc.end ? '' : Math.floor(mins) + ':' + (mins % 1 ? '30' : '00')}</span>${sub ? `<span class="badge navy">${doc.score}/${tot}</span>` : ''}${doc.wpm ? `<span>${doc.wpm} so‘z/daq</span>` : ''}<span style="margin-left:auto" class="note" id="gst"></span></div>
     <div class="cta">${!doc.end && !sub ? '<button class="btn" id="rgo">O‘qishni boshlash</button>' : ''}${doc.end && !doc.wpm && !sub ? '<button class="btn alt" id="rdone">O‘qib bo‘ldim</button>' : ''}${!mk && !readOff ? `<button class="btn alt sm" id="regen" ${isPend('gen' + k) ? 'disabled' : ''}>Yangi matn</button>` : ''}${readOff ? '<button class="btn alt sm" id="offx">Kunlik o‘qishga qaytish</button>' : ''}</div>`;
   texts.forEach((t, ti) => {
     h += `<section class="blk">${t.type ? `<div class="eyebrow">${RNAME[t.type] || ''} · ${t.q.length} savol</div>` : ''}${t.title && texts.length > 1 ? `<h3 class="ar" style="margin:4px 0 8px;text-align:right">${esc(t.title)}</h3>` : ''}<div class="passage">${esc(t.text).split(/\n\n+/).map(x => `<p>${x}</p>`).join('')}</div></section>
@@ -1497,14 +1550,14 @@ function renderRead(){
   const tick = () => { const el = $('#rt'), dd = dayDoc(k) || {}; if (!el || !dd.end) return clearInterval(rTimer); const left = Math.round((dd.end - Date.now()) / 1000);
     if (left <= 0) { el.textContent = 'Vaqt tugadi'; el.classList.add('low'); return clearInterval(rTimer); } el.textContent = `${Math.floor(left / 60)}:${pad2(left % 60)}`; el.classList.toggle('low', left < 120); };
   if (doc.end && !sub) { tick(); rTimer = setInterval(tick, 1000); }
-  const rg = $('#rgo'); if (rg) rg.onclick = () => { const mins = multi || readOff ? 35 : tot * 1.5; setDayDoc(k, Object.assign({}, dayDoc(k), {t0:Date.now(), end:Date.now() + mins * 60000})); renderRead(); };
-  const rd = $('#rdone'); if (rd) rd.onclick = () => { const dd = dayDoc(k), mins = Math.max(0.2, (Date.now() - dd.t0) / 60000); setDayDoc(k, Object.assign({}, dd, {wpm:Math.round(twords / mins)})); renderRead(); };
+  const rg = $('#rgo'); if (rg) rg.onclick = () => { setDayDoc(k, Object.assign({}, dayDoc(k), {t0:Date.now(), end:Date.now() + mins * 60000})); renderRead(); };
+  const rd = $('#rdone'); if (rd) rd.onclick = () => { const dd = dayDoc(k), m2 = Math.max(0.2, (Date.now() - dd.t0) / 60000); setDayDoc(k, Object.assign({}, dd, {wpm:Math.round(twords / m2)})); renderRead(); };
   if (!sub) {
     $('#view').querySelectorAll('.opt[data-q]').forEach(b => b.onclick = () => { const a = (dayDoc(k).ans || []).slice(); a[+b.dataset.q] = +b.dataset.i; setDayDoc(k, Object.assign({}, dayDoc(k), {ans:a})); const sy = scrollY; renderRead(); scrollTo(0, sy); });
     $('#rsub').onclick = () => {
       const a = dayDoc(k).ans || [], sc = allQ.filter((q, i) => a[i] === q.c).length;
       setDayDoc(k, Object.assign({}, dayDoc(k), {sub:true, score:sc}));
-      if (!readOff) { markTask(d, 't4r', true, Math.round(sc / tot * 100)); if (y.mock && !mk) markTask(d, 'm2', true, Math.round(sc / tot * 100)); }
+      if (!readOff) markTask(d, 't4r', true, Math.round(sc / tot * 100));
       if (mk) mockSave(d, 'read', {r:sc, n:tot, s30:Math.round(sc / tot * 30)});
       renderRead(); };
   }
@@ -1518,56 +1571,155 @@ function bindDayNav(){
   if (pv) pv.onclick = () => { readDay--; syncDay(readDay); renderRead(); };
   if (nx) nx.onclick = () => { readDay++; syncDay(readDay); renderRead(); };
 }
+/* PDF mocki rasmlari: har qism — avval matn (o‘qish vaqti), so‘ng savollar (javob vaqti); orqaga qaytilmaydi */
+function renderReadImg(){
+  clearInterval(rTimer);
+  const M = rmImg(readOff), k = readKey(), mk = MOCK.on && MOCK.d === readDay;
+  if (!M) { readOff = false; return renderRead(); }
+  const doc = Object.assign({pi:0, ph:'intro', ans:[], sub:false}, dayDoc(k) || {});
+  const keys = M.parts.flatMap(p => p.key || Array(p.n || 6).fill(null)), Nk = keys.filter(x => x !== null && x !== undefined).length;
+  const save = o => setDayDoc(k, Object.assign({}, doc, o));
+  const back = () => { readOff = false; if (mk) openMock(readDay); else renderRead(); };
+  const img = (src, alt) => `<img class="rimg" src="${esc(MURL(src))}" alt="${alt}" loading="lazy">`;
+  const head = t => `<div class="daybar"><div><div class="eyebrow">O‘qish mocki · ${esc(M.t || M.id)}${mk ? ' · mock' : ''} · 3 qism × 6 savol</div><h1 class="tt"><span>${t}</span></h1></div><span class="timer" id="rt"></span></div>`;
+  if (doc.sub) {
+    let off = 0;
+    $('#view').innerHTML = head(`Natija: ${doc.score}/${Nk} · ${Math.round(doc.score / Math.max(1, Nk) * 30)}/30`) + M.parts.map((P, pi) => { const o = off; off += P.n || 6;
+      return `<section class="blk"><h4>${pi + 1}-qism</h4>${P.txt.map(s => img(s, (pi + 1) + '-qism matni')).join('')}${P.qs.map(s => img(s, (pi + 1) + '-qism savollari')).join('')}
+        <div class="rgrid">${(P.key || Array(P.n || 6).fill(null)).map((c, i) => { const a = doc.ans[o + i]; return `<div class="rk ${c === null || c === undefined ? '' : (a === c ? 'ok' : 'bad')}"><b>${o + i + 1}</b><span>Siz: ${a === undefined || a === null ? '—' : LET[a]}</span><span>Kalit: ${c === null || c === undefined ? '?' : LET[c]}</span></div>`; }).join('')}</div></section>`; }).join('')
+      + `<div class="cta">${mk ? '<button class="btn red" id="riBack">Mock sahifasi</button>' : '<button class="btn alt" id="riRe">Qayta ishlash</button><button class="btn red" id="riBack">O‘qishga qaytish</button>'}</div>`;
+    $('#riBack').onclick = back;
+    const re = $('#riRe'); if (re) re.onclick = () => { setDayDoc(k, {pi:0, ph:'intro', ans:[], sub:false}); renderRead(); };
+    return paintAr();
+  }
+  if (doc.ph === 'intro') {
+    $('#view').innerHTML = head('Real vaqt bilan o‘qish mocki') + `<section class="blk"><p style="margin-top:0">Imtihondagidek: har qismda avval faqat matn (1,5 / 5 / 7 daqiqa), so‘ng savollar ochiladi (6 / 8 / 10 daqiqa). Vaqt tugasa, qism o‘zi topshiriladi; oldingi qismga qaytib bo‘lmaydi. Javobsiz savol qoldirmang — noto‘g‘ri javob uchun ball ayirilmaydi.</p>
+      <p class="note">Manba: ${esc(M.src || M.id)}. Javob kaliti oxirida ko‘rsatiladi.</p><div class="cta"><button class="btn red" id="riGo">Boshlash</button><button class="btn alt" id="riBack">Orqaga</button></div></section>`;
+    $('#riGo').onclick = () => { setDayDoc(k, {pi:0, ph:'read', end:Date.now() + RPART[0][0] * 60000, ans:[], sub:false}); renderRead(); window.scrollTo({top:0}); };
+    $('#riBack').onclick = back;
+    return;
+  }
+  const P = M.parts[doc.pi], off = M.parts.slice(0, doc.pi).reduce((s, p) => s + (p.n || 6), 0), n = P.n || 6, last = doc.pi >= M.parts.length - 1;
+  const toAns = () => { const dd = dayDoc(k); setDayDoc(k, Object.assign({}, dd, {ph:'ans', end:Date.now() + (RPART[dd.pi] || RPART[2])[1] * 60000})); renderRead(); window.scrollTo({top:0}); };
+  const submitPart = () => { const dd = dayDoc(k);
+    if (dd.pi < M.parts.length - 1) { const pi = dd.pi + 1; setDayDoc(k, Object.assign({}, dd, {pi, ph:'read', end:Date.now() + (RPART[pi] || RPART[2])[0] * 60000})); renderRead(); window.scrollTo({top:0}); return; }
+    const score = keys.filter((c, i) => c !== null && c !== undefined && dd.ans[i] === c).length;
+    setDayDoc(k, Object.assign({}, dd, {sub:true, score, n:Nk, end:0, at:Date.now()}));
+    if (mk) mockSave(readDay, 'read', {r:score, n:Nk, s30:Math.round(score / Math.max(1, Nk) * 30), src:M.id});
+    renderRead(); window.scrollTo({top:0}); };
+  $('#view').innerHTML = head(`${doc.pi + 1}-qism: ${doc.ph === 'read' ? 'matnni o‘qing' : 'savollarga javob bering'}`)
+    + `<section class="blk">${P.txt.map(s => img(s, (doc.pi + 1) + '-qism matni')).join('')}</section>`
+    + (doc.ph === 'ans' ? `<section class="blk">${P.qs.map(s => img(s, (doc.pi + 1) + '-qism savollari')).join('')}
+        <div class="rgrid">${Array.from({length:n}, (_, i) => { const gi = off + i, a = doc.ans[gi]; return `<div class="rans"><b>${gi + 1}</b>${LET.map((l, j) => `<button class="opt ${a === j ? 'ok' : ''}" data-q="${gi}" data-i="${j}" aria-pressed="${a === j}"><span class="k">${l}</span></button>`).join('')}</div>`; }).join('')}</div></section>` : '')
+    + `<div class="cta">${doc.ph === 'read' ? '<button class="btn red" id="riNext">Savollarga o‘tish</button>' : `<button class="btn red" id="riSub">${last ? 'Topshirish va natija' : 'Qismni topshirish (qaytib bo‘lmaydi)'}</button>`}<span class="note">${doc.ph === 'ans' ? `Javob berilgan: ${Array.from({length:n}, (_, i) => doc.ans[off + i]).filter(x => x !== undefined && x !== null).length}/${n}` : 'O‘qish vaqti tugasa, savollar o‘zi ochiladi.'}</span></div>`;
+  $('#view').querySelectorAll('.opt[data-q]').forEach(b => b.onclick = () => { const dd = dayDoc(k), a = (dd.ans || []).slice(); a[+b.dataset.q] = +b.dataset.i; setDayDoc(k, Object.assign({}, dd, {ans:a})); const sy = scrollY; renderRead(); scrollTo(0, sy); });
+  const nx = $('#riNext'); if (nx) nx.onclick = toAns;
+  const sb = $('#riSub'); if (sb) sb.onclick = submitPart;
+  const tick = () => { const el = $('#rt'), dd = dayDoc(k) || {}; if (!el || !dd.end || readOff !== M.id) return clearInterval(rTimer);
+    const left = Math.round((dd.end - Date.now()) / 1000);
+    if (left <= 0) { clearInterval(rTimer); return dd.ph === 'read' ? toAns() : submitPart(); }
+    el.textContent = `${Math.floor(left / 60)}:${pad2(left % 60)}`; el.classList.toggle('low', left < 60); };
+  tick(); rTimer = setInterval(tick, 1000);
+  paintAr();
+}
+/* PDF darslari uchun taymer: qism tanlanadi → o‘qish vaqti → javob vaqti → to‘g‘ri javoblar soni */
+let RTM = {sel:0, ph:'set', end:0, pi:0};
+function renderReadTimer(){
+  clearInterval(rTimer);
+  const d = readDay, y = DY(d), m = y.mat || {}, hist = ((PS.rtm || {})['d' + d] || []);
+  const seq = RTM.sel === 3 ? [0, 1, 2] : [RTM.sel], n = seq.length * 6;
+  const head = `<div class="daybar"><div><div class="eyebrow">O‘qish taymeri · ${d}-kun</div><h1 class="tt"><span>${RTM.ph === 'set' ? 'Qaysi qism?' : RTM.ph === 'done' ? 'Natijani yozing' : (seq[RTM.pi] + 1) + '-qism: ' + (RTM.ph === 'read' ? 'matnni o‘qing' : 'javob bering')}</span></h1></div><span class="timer" id="rt"></span></div>
+    ${m.O ? `<p class="note">Bugungi material: ${arW(esc(m.O))}</p>` : ''}`;
+  if (RTM.ph === 'set') {
+    $('#view').innerHTML = head + `<section class="blk"><div class="chips">${['1-qism · 1,5 + 6', '2-qism · 5 + 8', '3-qism · 7 + 10', 'Uchala qism · 37,5 daq'].map((l, i) => `<button class="chip" data-sel="${i}" aria-pressed="${RTM.sel === i}">${l}</button>`).join('')}</div>
+      <p class="note">Matnni PDF’dan o‘qing. O‘qish vaqtida savollarga qaramang; javob vaqti tugaganda hamma savolga javob bergan bo‘ling.</p>
+      <div class="cta"><button class="btn red" id="rtGo">Boshlash</button><button class="btn alt" id="rtX">Orqaga</button></div>
+      ${hist.length ? `<p class="note">Bugungi natijalar: ${hist.map(x => x.r + '/' + x.n).join(', ')}</p>` : ''}</section>`;
+    $('#view').querySelectorAll('[data-sel]').forEach(b => b.onclick = () => { RTM.sel = +b.dataset.sel; renderReadTimer(); });
+    $('#rtGo').onclick = () => { RTM = {sel:RTM.sel, ph:'read', pi:0, end:Date.now() + RPART[seq[0]][0] * 60000}; renderReadTimer(); };
+    $('#rtX').onclick = () => { readOff = false; renderRead(); };
+    return paintAr();
+  }
+  if (RTM.ph === 'done') {
+    $('#view').innerHTML = head + `<section class="blk"><label class="note" for="rtR">To‘g‘ri javoblar soni (${n} tadan):</label> <input id="rtR" type="number" min="0" max="${n}" inputmode="numeric" style="width:90px">
+      <div class="cta"><button class="btn red" id="rtSave">Saqlash</button><button class="btn alt" id="rtX">Bekor qilish</button></div></section>`;
+    $('#rtSave').onclick = () => { const r = Math.max(0, Math.min(n, +$('#rtR').value || 0)); PS.rtm = PS.rtm || {}; (PS.rtm['d' + d] = PS.rtm['d' + d] || []).push({r, n, at:Date.now()}); savePlan();
+      markTask(d, 't4r', true, Math.round(r / n * 100)); RTM = {sel:RTM.sel, ph:'set', pi:0, end:0}; renderReadTimer(); };
+    $('#rtX').onclick = () => { RTM = {sel:RTM.sel, ph:'set', pi:0, end:0}; renderReadTimer(); };
+    return;
+  }
+  const nextPh = () => { const p = seq[RTM.pi];
+    if (RTM.ph === 'read') { RTM.ph = 'ans'; RTM.end = Date.now() + RPART[p][1] * 60000; }
+    else if (RTM.pi < seq.length - 1) { RTM.pi++; RTM.ph = 'read'; RTM.end = Date.now() + RPART[seq[RTM.pi]][0] * 60000; }
+    else { RTM.ph = 'done'; RTM.end = 0; }
+    renderReadTimer(); };
+  $('#view').innerHTML = head + `<section class="blk"><p style="margin:0">${RTM.ph === 'read' ? 'Faqat matn: paragraflarning mavzusini yodda belgilang.' : 'Savollar: har biriga ~1 / 1,3 / 1,7 daqiqa. Bilmasangiz taxmin qiling.'}</p>
+    <div class="cta"><button class="btn red" id="rtN">${RTM.ph === 'read' ? 'Savollarga o‘tish' : (RTM.pi < seq.length - 1 ? 'Keyingi qism' : 'Tugatish')}</button></div></section>`;
+  $('#rtN').onclick = nextPh;
+  const tick = () => { const el = $('#rt'); if (!el || readOff !== 'tm') return clearInterval(rTimer); const left = Math.round((RTM.end - Date.now()) / 1000);
+    if (left <= 0) { clearInterval(rTimer); return nextPh(); } el.textContent = `${Math.floor(left / 60)}:${pad2(left % 60)}`; el.classList.toggle('low', left < 60); };
+  tick(); rTimer = setInterval(tick, 1000);
+  paintAr();
+}
 async function genReading(d, multi){
   const y = DY(d), k = 'r' + pad2(d), pk = 'gen' + k;
   if (isPend(pk)) return;
   const s = await getSample();
   const st = () => $('#gst');
-  if (!s) { if (st()) st().textContent = 'Claude bu ko‘rinishda mavjud emas — rasmiy namunadan foydalaning.'; return; }
+  if (!s) { if (st()) st().textContent = 'Claude bu ko‘rinishda mavjud emas — PDF mock yoki rasmiy namunadan foydalaning.'; return; }
   pendStart(pk); if (view === 'read') renderRead();
-  const spec = multi ? [6, 8, 10] : [y.r.q];
+  const spec = multi ? RTYPES : [RTYPES[d % 3]];
   const vw = todayWords(d);
-  const prompt = `Sen Tanal (التنال العربي) imtihonining o‘qish (القراءة) bo‘limi uchun material tuzuvchi mutaxassissan. Rasmiy format: qisqa matn — 6 savol, o‘rta matn — 8 savol, uzun matn — 10 savol; har savolda 4 variant, bittasi to‘g‘ri. Matn turlari: qisqa hikoya, e’lon, maqola yoki gazeta xulosasi.
-Fusho arab tilida ${spec.length > 1 ? 'uchta asl matn' : 'bitta asl matn'} yoz (mavzu: ${esc(y.r.g)}; O‘zbekiston, arab dunyosi yoki umuminsoniy — ta’lim, texnologiya, sog‘liq, atrof-muhit, jamiyat, madaniyat, iqtisod):
-${spec.map(n => `- ${RNAME[RTYPE[n]]}: ${RLEN[n]} so‘z, aynan ${n} ta savol`).join('\n')}
+  const prompt = `Sen Tanal (التنال العربي) imtihonining o‘qish (القراءة) bo‘limi uchun material tuzuvchi mutaxassissan. Real format (2025–2026): 3 matn — qisqa, o‘rta, uzun; har birida aynan 6 savol (jami 18); vaqt 1,5+6, 5+8, 7+10 daqiqa. Har savolda 4 variant, bittasi to‘g‘ri. Matn turlari: ilmiy-ommabop maqola, brend yoki kashfiyot tarixi, shahar va madaniyat, ijtimoiy mavzu.
+Fusho arab tilida ${spec.length > 1 ? 'uchta asl matn' : 'bitta asl matn'} yoz (O‘zbekiston, arab dunyosi yoki umuminsoniy — ta’lim, texnologiya, sog‘liq, atrof-muhit, jamiyat, madaniyat, iqtisod, tarix):
+${spec.map(t => `- ${RNAME[t]}: ${RLEN[t]} so‘z, aynan 6 ta savol`).join('\n')}
 Matnlarda masdarlar, kana/inna, hol, tamyiz, son kabi i’robi qiziq jumlalar bo‘lsin. ${vw.length ? 'Iloji boricha shu so‘zlardan 5–6 tasini ishlat: ' + vw.join('، ') + '.' : ''} Harakatni faqat chalkash so‘zlarda qo‘y.
-Savol turlari (rasmiy ro‘yxatdan, aralash): asosiy fikr va sarlavha (العنوان الأنسب)، tafsilot, ضمير qaytishi (يعود الضمير في … على)، tagiga chizilgan so‘z ma’nosi (المقصود بـ)، sinonim va antonim، xulosa chiqarish (يُستنتج من النص)، «واحدة مما يلي ليست …» yoki «ما الذي لم يرد في النص؟»، fikrlar tartibi (تدرّج النص في عرض الموضوع)، muallif maqsadi yoki hissiyot، «املأ الفراغ في الجملة بالإجابة الصحيحة» (variantlar grammatik shakllar bilan farqlansin)، ildiz yoki vazn. Savol va variantlar arabcha, to‘g‘ri javob o‘rni aralash.
+Savol turlari (aralash): asosiy fikr va sarlavha (العنوان الأنسب)، tafsilot, ضمير qaytishi (يعود الضمير في … على)، kontekstdagi so‘z ma’nosi (المقصود بـ)، sinonim va antonim، xulosa chiqarish (يُستنتج من النص)، «ما الذي لم يرد في النص؟»، fikrlar tartibi، muallif maqsadi. Savol va variantlar arabcha, to‘g‘ri javob o‘rni aralash.
 Faqat JSON qaytar:
 {"texts":[{"type":"short|medium|long","title":"arabcha sarlavha","text":"xatboshilar \\n\\n bilan","q":[{"s":"savol","o":["","","",""],"c":0,"uz":"o‘zbekcha 1–2 jumla: nega shu javob"}]}],"v":[["arabcha so‘z (harakat bilan)","o‘zbekcha ma’nosi"]]}
 "v" da matnlardagi 10 ta eng foydali C1 so‘z bo‘lsin.`;
   try {
     const p = await s.json(prompt, {modelTier:'default', cache:false});
     if (!p || !Array.isArray(p.texts) || !p.texts.length || !p.texts.every(t => t.text && Array.isArray(t.q))) throw {code:'invalid_json'};
+    p.texts.forEach((t, i) => { t.q = t.q.slice(0, 6); if (!RNAME[t.type]) t.type = spec[i] || 'short'; });
     setDayDoc(k, {p, ans:[], sub:false});
   } catch(e) { pendEnd(pk); if (view === 'read' && st()) { renderRead(); if (st()) st().textContent = sampleErr(e); } return; }
   pendEnd(pk);
   if (view === 'read' && readDay === d && !readOff) renderRead();
 }
 
-/* ---------- listening (A1: Tanal eshitish — 5 qisqa dialog, uzun dialog, ma’ruza) ---------- */
-let listenDay = selDay, LSN = null;
-const LMAX = {short:2, long:1, lecture:1, q:2};
+/* ---------- listening (real format: 6 qisqa dialog + uzun dialog 6 savol + ma’ruza 6 savol = 18; har qismga 7 daqiqa) ---------- */
+let listenDay = selDay, LSN = null, lTimer = null;
+const LMAX = {short:2, long:2, lecture:2, q:2};
+const LPART = {short:'6 ta qisqa dialog', long:'Uzun dialog', lecture:'Ma’ruza'};
 const lisAll = () => (LST.sets || []);
-function lisNext(){ const done = PS.lis || {}; return lisAll().find(s => !done[s.id]) || null; }
+const lisMocks = () => (LST.mocks || []);
+function lisNext(){ const done = PS.lis || {}; return lisAll().find(s => !done[s.id] && !s.res) || null; }
 const genSetKey = d => 'l' + pad2(d);
+function lisStart(s, mock){ LSN = {set:s, pi:0, ans:{}, plays:{}, shown:{}, media:{}, heard:{}, qopen:{}, pend:{}, mock:mock || 0}; }
 function renderListen(){
+  clearInterval(lTimer);
   if (LSN) return renderLSet();
-  const done = PS.lis || {}, sets = lisAll(), nx = lisNext(), mk = MOCK.on && MOCK.d === listenDay;
+  const done = PS.lis || {}, sets = lisAll(), mocks = lisMocks(), nx = lisNext(), mk = MOCK.on && MOCK.d === listenDay;
   const gk = genSetKey(listenDay), gdoc = dayDoc(gk), pk = 'gl' + listenDay;
-  let h = `<div class="daybar"><div><div class="eyebrow">Eshitish va suhbat · ${listenDay}-kun${mk ? ' · mock' : ''}</div><h1 class="tt"><span>Tanal formatida tinglash</span></h1></div>
+  const m = DY(listenDay).mat || {};
+  let h = `<div class="daybar"><div><div class="eyebrow">Eshitish · ${listenDay}-kun${mk ? ' · mock' : ''}</div><h1 class="tt"><span>Tanal formatida tinglash</span></h1></div>
       ${mk ? '' : `<div class="nav"><button id="pv" ${listenDay <= 1 ? 'disabled' : ''} aria-label="Oldingi">‹</button><button id="nx" ${listenDay >= ND ? 'disabled' : ''} aria-label="Keyingi">›</button></div>`}</div>
-    <p class="note" style="margin:0">Imtihonda: 1-qism — 5 ta qisqa dialog (erkak va ayol), har biri ikki marta eshitiladi; 2-qism — uzun dialog va 5 savol; 3-qism — ma’ruza va 5 savol, bir marta. Har savol 2 ball, jami 30.</p>`;
-  if (sets.length) h += `<section class="blk"><h4 style="color:var(--navy)">${nx ? 'Navbatdagi audio to‘plam' : 'Hamma audio to‘plam bajarilgan'}</h4>${nx ? `<p style="margin:0 0 10px"><b>${esc(nx.title)}</b>${nx.src ? ' · ' + esc(nx.src) : ''}</p><button class="btn red" data-set="${esc(nx.id)}">Boshlash</button>` : '<p class="note" style="margin:0">Istalganini qayta ishlashingiz yoki Claude ovozli to‘plamini olishingiz mumkin.</p>'}</section>`;
+    <p class="note" style="margin:0">Real imtihon: 1-qism — 6 ta qisqa dialog, savol <bdi dir="rtl" class="ar">ماذا قصد الرجل؟</bdi> (ko‘pincha maqol: hikmat formulasini toping); 2-qism — uzun dialog, 6 savol; 3-qism — ma’ruza, 6 savol. Audio bir marta o‘zi qo‘yiladi, ikkinchi marta faqat tugma bilan; 2–3-qismda savollar audio tugagach chiqadi va shundan keyin qayta eshitib bo‘lmaydi. Har qismga javob uchun 7 daqiqa. Ball: to‘g‘ri / 18 × 30.</p>
+    ${m.E && !mk ? `<p class="note">Bugungi yo‘l tinglashi: ${arW(esc(m.E))}</p>` : ''}`;
+  if (sets.length) h += `<section class="blk"><h4 style="color:var(--navy)">${nx ? 'Navbatdagi audio to‘plam' : 'Kundalik to‘plamlar bajarilgan'}</h4>${nx ? `<p style="margin:0 0 10px"><b>${esc(nx.title)}</b>${nx.src ? ' · ' + esc(nx.src) : ''}</p><button class="btn red" data-set="${esc(nx.id)}">Boshlash</button>` : '<p class="note" style="margin:0">Mock to‘plamlarini mock kuni ishlang. Qo‘shimcha mashq uchun Claude ovozli to‘plami yoki YouTube havolalari.</p>'}</section>`;
   h += `<section class="blk add"><h4>Claude ovozli to‘plami — ${listenDay}-kun</h4>
-    ${TTS ? `<p class="note" style="margin:0 0 8px">Claude Tanal formatida yangi dialoglar va ma’ruza tuzadi, ilova ularni ovoz chiqarib o‘qiydi (erkak va ayol ovozi). Matn javobdan keyin ochiladi.</p>
+    ${TTS ? `<p class="note" style="margin:0 0 8px">Claude real formatda 6 ta qisqa dialog, uzun dialog va ma’ruza tuzadi, ilova ularni ovoz chiqarib o‘qiydi (erkak va ayol ovozi). Matn javobdan keyin ochiladi.</p>
       ${gdoc && gdoc.set ? `<button class="btn ${nx ? 'alt' : 'red'}" data-gen="1">${PS.lis && PS.lis[gdoc.set.id] ? 'Qayta ishlash' : 'Boshlash'}</button>` : `<button class="btn ${nx ? 'alt' : 'red'}" id="lgen" ${isPend(pk) ? 'disabled' : ''}>To‘plam yaratish</button>`}
       <span class="note" id="lgst">${isPend(pk) ? waitHtml(pk, 'To‘plam tuzilmoqda', '1–2 daqiqa') : ''}</span>`
       : '<p class="note" style="margin:0">Claude yangi dialog va ma’ruza tuzib, ovoz chiqarib o‘qiydigan to‘plam claude.ai’dagi ilovada ishlaydi.</p>'}</section>`;
-  if (sets.length) h += `<section class="blk"><h4>Audio to‘plamlar (${sets.length})</h4><div class="wl">${sets.map(s => `<button class="wi hist" data-set="${esc(s.id)}"><span>${esc(s.title)}</span><small>${done[s.id] ? done[s.id].score + '/' + done[s.id].of : (s.parts || []).map(p => ({short:'qisqa', long:'uzun dialog', lecture:'ma’ruza'})[p.type]).join(' · ')}</small></button>`).join('')}</div></section>`;
+  if (mocks.length) h += `<section class="blk"><h4>Mock to‘plamlari — 6 + 6 + 6 (oldindan ishlamang)</h4><div class="wl">${mocks.map(s => `<button class="wi hist" data-mset="${esc(s.id)}"><span>${esc(s.title)}</span><small>${done[s.id] ? done[s.id].score + '/30' : 'mock kuni uchun'}</small></button>`).join('')}</div></section>`;
+  if (sets.length) h += `<section class="blk"><h4>Audio to‘plamlar (${sets.length})</h4><div class="wl">${sets.map(s => `<button class="wi hist" data-set="${esc(s.id)}"><span>${esc(s.title)}</span><small>${done[s.id] ? done[s.id].score + '/' + done[s.id].of : (s.res ? s.res.replace('LM', 'M') + ' mockida ishlatiladi' : (s.parts || []).map(p => ({short:'qisqa', long:'uzun dialog', lecture:'ma’ruza'})[p.type]).join(' · '))}</small></button>`).join('')}</div></section>`;
   if (LST.links && LST.links.length && !mk) h += `<section class="blk"><h4>Qo‘shimcha tinglash (YouTube)</h4><ul>${LST.links.map(l => `<li><a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.t)}</a>${l.uz ? ' — ' + esc(l.uz) : ''}</li>`).join('')}</ul></section>`;
   $('#view').innerHTML = h;
-  const start = s => { LSN = {set:s, pi:0, ans:{}, plays:{}, shown:{}, media:{}, mock:mk ? listenDay : 0}; renderListen(); window.scrollTo({top:0}); };
+  const start = s => { lisStart(s, mk ? listenDay : 0); renderListen(); window.scrollTo({top:0}); };
   $('#view').querySelectorAll('[data-set]').forEach(b => b.onclick = () => { const s = sets.find(x => x.id === b.dataset.set); if (s) start(s); });
+  $('#view').querySelectorAll('[data-mset]').forEach(b => b.onclick = () => { const s = mocks.find(x => x.id === b.dataset.mset); if (s) start(s); });
   const gb = $('[data-gen]'); if (gb) gb.onclick = () => start(dayDoc(gk).set);
   const lg = $('#lgen'); if (lg) lg.onclick = () => genListen(listenDay);
   const pv = $('#pv'), nxb = $('#nx');
@@ -1579,25 +1731,25 @@ async function genListen(d){
   const pk = 'gl' + d; if (isPend(pk)) return;
   const s = await getSample(); if (!s) { const st = $('#lgst'); if (st) st.textContent = 'Claude bu ko‘rinishda mavjud emas.'; return; }
   pendStart(pk); if (view === 'listen' && !LSN) renderListen();
-  const prompt = `Sen Tanal (التنال العربي) imtihonining eshitish (الاستماع والمحادثة) qismi uchun audio-matn tuzuvchisan. Matnlar ovoz chiqarib o‘qiladi (erkak va ayol ovozi), talaba ularni eshitib javob beradi.
-Rasmiy format:
-1-qism: erkak va ayol o‘rtasidagi 5 ta qisqa dialog (har biri 2–4 replika). Har dialogdan keyin roviy savol beradi, ko‘pincha «ماذا قصد الرجل بكلامه؟» yoki «ماذا تقصد المرأة؟» — javob ochiq aytilmagan niyat, kinoya, rad etish, taklif yoki maqol ma’nosi; 4 variant.
-2-qism: erkak va ayol o‘rtasidagi uzun dialog (250–320 so‘z) va 5 ta savol (asosiy fikr, tafsilot, sabab, xulosa, so‘zlovchining fikri).
-3-qism: ma’ruza (300–380 so‘z, ilmiy-ommabop yoki ijtimoiy mavzu, aniq tuzilma) va 5 ta savol (asosiy fikr, fikrlar tartibi, tafsilot, xulosa, kontekstdagi so‘z ma’nosi).
-Mavzular kundalik va ijtimoiy: ta’lim, ish, sog‘liq, texnologiya, atrof-muhit, oila, sayohat, iqtisod. Fusho arab tili, tabiiy, B2–C1 darajada. Harakatni faqat chalkash so‘zlarda qo‘y. To‘g‘ri javob o‘rni aralash bo‘lsin.
+  const prompt = `Sen Tanal (التنال العربي) imtihonining eshitish (الاستماع) qismi uchun audio-matn tuzuvchisan. Matnlar ovoz chiqarib o‘qiladi (erkak va ayol ovozi), talaba ularni eshitib javob beradi.
+Real format (2025–2026):
+1-qism: erkak va ayol o‘rtasidagi 6 ta qisqa dialog (har biri 2–4 replika). Oxirgi replika ko‘pincha mashhur arab maqoli yoki ko‘chma ibora. Roviy savol beradi: «ماذا قصد الرجل بكلامه؟» yoki «ماذا قصدت المرأة بكلامها؟» — to‘g‘ri javob maqolni so‘zma-so‘z takrorlamaydi, uning umumlashgan hikmatini beradi; 4 variant.
+2-qism: erkak va ayol o‘rtasidagi uzun dialog (250–320 so‘z) va 6 ta savol (asosiy fikr, tafsilot, sabab, xulosa, so‘zlovchining munosabati, kontekstdagi so‘z ma’nosi).
+3-qism: ilmiy-ommabop ma’ruza (300–380 so‘z; masalan, brend yoki kashfiyot tarixi, sog‘liq, texnologiya) va 6 ta savol (asosiy fikr, fikrlar tartibi, raqam yoki sana, tafsilot, xulosa, so‘z ma’nosi).
+Fusho arab tili, tabiiy, B2–C1 darajada. Maqollarda to‘liq harakat, qolgan joyda faqat chalkash so‘zlarda. To‘g‘ri javob o‘rni aralash bo‘lsin.
 Faqat JSON qaytar:
 {"title":"qisqa arabcha nom","short":[{"lines":[{"s":"m","t":"erkak replikasi"},{"s":"f","t":"ayol replikasi"}],"q":"savol","o":["","","",""],"c":0}],
 "long":{"lines":[{"s":"m","t":""},{"s":"f","t":""}],"qs":[{"q":"","o":["","","",""],"c":0}]},
 "lecture":{"text":"ma’ruza matni, xatboshilar \\n\\n bilan","qs":[{"q":"","o":["","","",""],"c":0}]}}
-short — aynan 5 ta; long.qs va lecture.qs — aynan 5 tadan.`;
+short — aynan 6 ta; long.qs va lecture.qs — aynan 6 tadan.`;
   try {
     const r = await s.json(prompt, {modelTier:'default', cache:false});
     if (!r || !Array.isArray(r.short) || !r.long || !r.lecture || r.short.length < 5) throw {code:'invalid_json'};
     const jl = L => (L || []).map(l => (l.s === 'f' ? 'المرأة: ' : 'الرجل: ') + l.t).join('\n');
     const set = {id:'claude-' + d + '-' + Date.now(), title:(r.title ? r.title + ' — ' : '') + 'Claude to‘plami, ' + d + '-kun', src:'Claude + ovozli o‘qish', gen:true, parts:[
-      {type:'short', items:r.short.slice(0, 5).map(x => ({lines:x.lines, q:x.q, o:x.o, c:x.c, t:jl(x.lines)}))},
-      {type:'long', lines:r.long.lines, t:jl(r.long.lines), qs:r.long.qs.slice(0, 5).map(q => ({q:q.q, o:q.o, c:q.c}))},
-      {type:'lecture', text:r.lecture.text, t:r.lecture.text, qs:r.lecture.qs.slice(0, 5).map(q => ({q:q.q, o:q.o, c:q.c}))}]};
+      {type:'short', items:r.short.slice(0, 6).map(x => ({lines:x.lines, q:x.q, o:x.o, c:x.c, t:jl(x.lines)}))},
+      {type:'long', lines:r.long.lines, t:jl(r.long.lines), qs:r.long.qs.slice(0, 6).map(q => ({q:q.q, o:q.o, c:q.c}))},
+      {type:'lecture', text:r.lecture.text, t:r.lecture.text, qs:r.lecture.qs.slice(0, 6).map(q => ({q:q.q, o:q.o, c:q.c}))}]};
     setDayDoc(genSetKey(d), {set});
   } catch(e) { pendEnd(pk); if (view === 'listen' && !LSN) { renderListen(); const st = $('#lgst'); if (st) st.textContent = sampleErr(e); } return; }
   pendEnd(pk);
@@ -1613,7 +1765,10 @@ function lisPlay(media, key, max, btn){
   try { if (LAUD) LAUD.pause(); } catch(e) {}
   LSN.plays[key] = n + 1;
   btn.disabled = true; btn.textContent = 'Eshitilmoqda…';
-  const end = () => { if (!btn.isConnected) return; const left = max - (LSN.plays[key] || 0); btn.disabled = left <= 0; btn.innerHTML = ICO.vol + (left > 0 ? `Yana tinglash (${left})` : 'Tinglandi'); };
+  const S0 = LSN;
+  const end = () => {
+    if (S0 === LSN && /main$/.test(key)) { const pk = key.replace(/main$/, ''); if (!LSN.heard[pk]) { LSN.heard[pk] = 1; if (view === 'listen') return renderLSet(); } }
+    if (!btn.isConnected) return; const left = max - (LSN.plays[key] || 0); btn.disabled = left <= 0; btn.innerHTML = ICO.vol + (left > 0 ? `Qayta eshitish (${left})` : 'Tinglandi'); };
   const fail = () => { LSN.plays[key] = n; if (!btn.isConnected) return; btn.disabled = false; btn.textContent = 'Ovoz chiqmadi — qayta bosing'; };
   if (typeof media === 'string') {
     LAUD = new Audio(AURL((LST.base || '') + media));
@@ -1624,51 +1779,63 @@ function lisPlay(media, key, max, btn){
   } else fail();
 }
 function renderLSet(){
+  clearInterval(lTimer);
   const S = LSN, set = S.set, parts = set.parts || [], P1 = parts[S.pi];
-  S.media = S.media || {};
+  S.media = S.media || {}; S.heard = S.heard || {}; S.qopen = S.qopen || {}; S.pend = S.pend || {};
   const qOf = p => p.type === 'short' ? p.items : p.qs;
   const nQ = parts.reduce((s, p) => s + qOf(p).length, 0);
-  const pk = 'p' + S.pi;
+  const pk = 'p' + S.pi, isShort = P1.type === 'short';
+  const qVisible = isShort || S.qopen[pk];
+  if (qVisible && !S.pend[pk] && !S.shown[pk]) S.pend[pk] = Date.now() + 7 * 60000;
   const allAns = qOf(P1).every((q, i) => S.ans[pk + '_' + i] !== undefined), shown = !!S.shown[pk];
-  const playBtn = (media, key, max, label) => { S.media[key] = media; const left = max - (S.plays[key] || 0); return `<button class="btn ${left === max ? '' : 'alt'} sm" data-key="${key}" data-max="${max}" ${left <= 0 ? 'disabled' : ''}>${ICO.vol}${left <= 0 ? 'Tinglandi' : (left === max ? label : `Yana tinglash (${left})`)}</button>`; };
+  const playBtn = (media, key, max, label, off) => { S.media[key] = media; const left = max - (S.plays[key] || 0); return `<button class="btn ${left === max ? '' : 'alt'} sm" data-key="${key}" data-max="${max}" ${left <= 0 || off ? 'disabled' : ''}>${ICO.vol}${off ? 'Savollar ochilgan — qayta eshitib bo‘lmaydi' : left <= 0 ? 'Tinglandi' : (left === max ? label : `Qayta eshitish (${left})`)}</button>`; };
   const qMedia = q => q.audio || (set.gen ? {text:q.q} : null);
   const qHtml = (q, i, extra) => { const key = pk + '_' + i, a = S.ans[key];
     return `<div class="rq">${extra || ''}<div class="stem ar">${esc(q.q || 'ماذا قصد الرجل بكلامه؟')}</div><div class="opts">${q.o.map((o, j) => {
       let c = ''; if (shown) { if (j === q.c) c = 'ok'; else if (a === j) c = 'bad'; } else if (a === j) c = 'ok';
       return `<button class="opt ${c}" data-k="${key}" data-i="${j}" ${shown ? 'disabled' : ''}><span class="k">${LET[j]}</span><span class="ar">${esc(o)}</span></button>`; }).join('')}</div>
-      ${shown && q.t ? `<details style="margin-top:6px"><summary style="cursor:pointer" class="note">Matnni ko‘rish</summary><div class="trans">${esc(q.t)}</div></details>` : ''}</div>`; };
+      ${shown && (q.t || q.uz) ? `<details style="margin-top:6px"><summary style="cursor:pointer" class="note">Matnni ko‘rish</summary>${q.t ? `<div class="trans">${esc(q.t)}</div>` : ''}${q.uz ? `<p class="note">${esc(q.uz)}</p>` : ''}</details>` : ''}</div>`; };
   let body = '';
-  if (P1.type === 'short') body = P1.items.map((it, i) => qHtml(it, i, `<div class="lplay">${playBtn(it.audio || {lines:it.lines}, pk + 'a' + i, LMAX.short, `${i + 1}-dialogni tinglash`)}<span class="left">ikki marta tinglash mumkin</span></div>`)).join('');
-  else body = `<div class="lplay">${playBtn(P1.audio || (P1.lines ? {lines:P1.lines} : {text:P1.text}), pk + 'main', LMAX[P1.type], P1.type === 'long' ? 'Dialogni tinglash' : 'Ma’ruzani tinglash')}<span class="left">bir marta tinglanadi</span></div>`
-    + P1.qs.map((q, i) => qHtml(q, i, qMedia(q) ? `<div class="lplay">${playBtn(qMedia(q), pk + 'q' + i, LMAX.q, `${i + 1}-savolni tinglash`)}</div>` : '')).join('')
-    + (shown && P1.t ? `<details style="margin-top:8px"><summary style="cursor:pointer;font-weight:600">${P1.type === 'long' ? 'Dialog' : 'Ma’ruza'} matni</summary><div class="trans">${esc(P1.t)}</div></details>` : '');
+  if (isShort) body = P1.items.map((it, i) => qHtml(it, i, `<div class="lplay">${playBtn(it.audio || {lines:it.lines}, pk + 'a' + i, LMAX.short, `${i + 1}-dialogni tinglash`)}<span class="left">bir marta + qayta eshitish tugmasi</span></div>`)).join('');
+  else {
+    body = `<div class="lplay">${playBtn(P1.audio || (P1.lines ? {lines:P1.lines} : {text:P1.text}), pk + 'main', LMAX[P1.type], P1.type === 'long' ? 'Dialogni tinglash' : 'Ma’ruzani tinglash', S.qopen[pk])}<span class="left">${S.qopen[pk] ? '' : 'savollar audio tugagach ochiladi'}</span></div>`;
+    if (!S.qopen[pk]) body += `<p class="note">Tinglash paytida 5 fakt yodda tuting: kim, nima, qachon, raqam, sabab-oqibat.</p>${S.heard[pk] ? '<div class="cta"><button class="btn red" id="lqo">Savollarni ochish (qayta eshitib bo‘lmaydi)</button></div>' : ''}`;
+    else body += P1.qs.map((q, i) => qHtml(q, i, qMedia(q) ? `<div class="lplay">${playBtn(qMedia(q), pk + 'q' + i, LMAX.q, `${i + 1}-savolni tinglash`)}</div>` : '')).join('')
+      + (shown && P1.t ? `<details style="margin-top:8px"><summary style="cursor:pointer;font-weight:600">${P1.type === 'long' ? 'Dialog' : 'Ma’ruza'} matni</summary><div class="trans">${esc(P1.t)}</div></details>` : '');
+  }
   const right = pi => qOf(parts[pi]).filter((q, i) => S.ans['p' + pi + '_' + i] === q.c).length;
-  $('#view').innerHTML = `<div class="daybar"><div><div class="eyebrow">Eshitish · ${esc(set.title)}${S.mock ? ' · mock' : ''}</div><h1 class="tt"><span>${S.pi + 1}-qism: ${({short:'5 ta qisqa dialog', long:'Uzun dialog', lecture:'Ma’ruza'})[P1.type]}</span></h1></div><div class="dots">${parts.map((p, i) => `<i class="${i < S.pi ? 'done' : i === S.pi ? 'on' : ''}"></i>`).join('')}</div></div>
+  $('#view').innerHTML = `<div class="daybar"><div><div class="eyebrow">Eshitish · ${esc(set.title)}${S.mock ? ' · mock' : ''}</div><h1 class="tt"><span>${S.pi + 1}-qism: ${LPART[P1.type] || P1.type}</span></h1></div><div><div class="dots">${parts.map((p, i) => `<i class="${i < S.pi ? 'done' : i === S.pi ? 'on' : ''}"></i>`).join('')}</div><span class="timer" id="lt"></span></div></div>
     <section class="blk">${body}</section>
-    <div class="cta">${!shown ? `<button class="btn red" id="lchk" ${allAns ? '' : 'disabled'}>Javoblarni tekshirish</button>` : `<span class="badge navy">${right(S.pi)}/${qOf(P1).length}</span>${S.pi + 1 < parts.length ? '<button class="btn red" id="lnext">Keyingi qism</button>' : '<button class="btn red" id="lfin">Natija</button>'}`}<button class="btn alt" id="lquit">Chiqish</button></div>`;
+    <div class="cta">${!shown ? (qVisible ? `<button class="btn red" id="lchk" ${allAns ? '' : 'disabled'}>Javoblarni tekshirish</button>` : '') : `<span class="badge navy">${right(S.pi)}/${qOf(P1).length}</span>${S.pi + 1 < parts.length ? '<button class="btn red" id="lnext">Keyingi qism</button>' : '<button class="btn red" id="lfin">Natija</button>'}`}<button class="btn alt" id="lquit">Chiqish</button></div>`;
   $('#view').querySelectorAll('[data-key]').forEach(b => b.onclick = () => lisPlay(S.media[b.dataset.key], b.dataset.key, +b.dataset.max, b));
   $('#view').querySelectorAll('.opt[data-k]').forEach(b => b.onclick = () => { S.ans[b.dataset.k] = +b.dataset.i; const sy = scrollY; renderLSet(); scrollTo(0, sy); });
   const stopA = () => { try { LAUD && LAUD.pause(); } catch(e) {} sayStop(); };
+  const qo = $('#lqo'); if (qo) qo.onclick = () => { stopA(); S.qopen[pk] = 1; renderLSet(); };
   const ck = $('#lchk'); if (ck) ck.onclick = () => { S.shown[pk] = 1; renderLSet(); };
   const nx = $('#lnext'); if (nx) nx.onclick = () => { stopA(); S.pi++; renderLSet(); window.scrollTo({top:0}); };
   const fn = $('#lfin'); if (fn) fn.onclick = () => {
-    const r = parts.reduce((s, p, pi) => s + right(pi), 0), score = r * 2, of = nQ * 2;
-    PS.lis = PS.lis || {}; PS.lis[set.id] = {score, of, at:Date.now()}; savePlan();
-    markTask(listenDay, 'tL', true, Math.round(score / of * 100));
-    if (S.mock) mockSave(S.mock, 'lis', {score, of});
+    const r = parts.reduce((s, p, pi) => s + right(pi), 0), score = Math.round(r / nQ * 30);
+    PS.lis = PS.lis || {}; PS.lis[set.id] = {score, of:30, r, n:nQ, at:Date.now()}; savePlan();
+    if (!S.mock) markTask(listenDay, 'tL', true, Math.round(r / nQ * 100));
+    if (S.mock) mockSave(S.mock, 'lis', {score, of:30, r, n:nQ, src:set.id});
     stopA();
     const m = S.mock; LSN = null;
-    $('#view').innerHTML = `<div><div class="eyebrow">Eshitish · natija</div><div class="score"><b>${score} / ${of}</b><span class="note">${Math.round(score / of * 100)}% · har savol 2 ball</span></div></div>
+    $('#view').innerHTML = `<div><div class="eyebrow">Eshitish · natija</div><div class="score"><b>${score} / 30</b><span class="note">${r}/${nQ} to‘g‘ri · ${Math.round(r / nQ * 100)}%</span></div></div>
       <div class="cta">${m ? '<button class="btn red" id="toMock">Mock sahifasi</button>' : '<button class="btn red" id="lback">To‘plamlar</button>'}</div>`;
     const tb = $('#toMock'); if (tb) tb.onclick = () => openMock(m);
     const lb = $('#lback'); if (lb) lb.onclick = () => renderListen();
   };
   let armed = false;
   $('#lquit').onclick = () => { if (!armed) { armed = true; $('#lquit').textContent = 'Natija saqlanmaydi — yana bosing'; return; } stopA(); LSN = null; renderListen(); };
+  const tick = () => { const el = $('#lt'); if (!el || LSN !== S) return clearInterval(lTimer); const end = S.pend[pk]; if (!end || S.shown[pk]) { el.textContent = ''; return; }
+    const left = Math.round((end - Date.now()) / 1000);
+    if (left <= 0) { clearInterval(lTimer); S.shown[pk] = 1; return renderLSet(); }
+    el.textContent = `${Math.floor(left / 60)}:${pad2(left % 60)}`; el.classList.toggle('low', left < 60); };
+  tick(); lTimer = setInterval(tick, 1000);
   paintAr();
 }
 
-/* ---------- mock (A3: to‘liq Tanal — 5 qism, /150) ---------- */
+/* ---------- mock (real tartib: grammatika → o‘qish → tinglash → gapirish → yozish, /150) ---------- */
 let MOCK = {on:false, d:0};
 const mockDoc = d => dayDoc('k' + pad2(d)) || {};
 function mockSave(d, sec, val){
@@ -1678,33 +1845,58 @@ function mockSave(d, sec, val){
 }
 function openMock(d){ MOCK = {on:true, d}; setView('mock'); }
 function mockScore(doc){
-  const s = {lis:doc.lis ? Math.round(doc.lis.score / doc.lis.of * 30) : null, gram:doc.gram ? Math.round(doc.gram.r / (doc.gram.of || doc.gram.n || 30) * 30) : null,
-    read:doc.read ? doc.read.s30 : null, write:doc.write ? doc.write.score : null, speak:doc.speak ? doc.speak.score : null};
-  const got = Object.values(s).filter(v => v !== null);
+  const v = (x, f) => !x ? null : (x.manual !== undefined ? x.manual : f(x));
+  const s = {gram:v(doc.gram, x => Math.round(x.r / (x.of || x.n || 30) * 30)), read:v(doc.read, x => x.s30), lis:v(doc.lis, x => Math.round(x.score / (x.of || 30) * 30)),
+    speak:v(doc.speak, x => x.score), write:v(doc.write, x => x.score)};
+  const got = Object.values(s).filter(x => x !== null && x !== undefined);
   return {s, total:got.reduce((a, b) => a + b, 0), parts:got.length};
 }
+const MSEC = [['gram', '1. Grammatika'], ['read', '2. O‘qish'], ['lis', '3. Tinglash'], ['speak', '4. Gapirish'], ['write', '5. Yozish']];
+/* hisobotdagi qaror qoidalari: bo‘lim 25/30 dan past bo‘lsa, keyingi hafta nima o‘zgaradi */
+const MRULE = {
+  gram:['Xatolarni mavzu kodi bo‘yicha sanang. Dushanba–chorshanba 07:15–08:05: 3 ta eng yomon mavzu — KT qoida betlari + har koddan 10 savol; har kuni 07:00 da Xatolarim 10.', 'Javobsiz yoki oxirgi soniyada belgilangan savol bo‘lsa: bir hafta 45 s/savol taymer bilan; 50-soniyada doim javob.', '«Xato so‘zni top» turi zaif bo‘lsa: kechqurun TS testi 2 tadan, KT 375–430.'],
+  read:['14/18 dan past yoki javobsiz savol bo‘lsa: har blokda teskari taymer, savolga 1 / 1,3 / 1,7 daqiqa; bilmasangiz taxmin qilib «التالي».', 'Ma’nodosh/lug‘at savollari: Top 200 Sinonim — kuniga 10 ta (2-yo‘lda).', '3-qism xulosa savollari: kuniga 2 ta RD uzun matni 7+10 da; savoldan oldin asosiy g‘oyani bir qatorda yozing.'],
+  lis:['1-qism xatolari: kuniga 10 maqol (5 o‘rniga), har biri hikmat formulasi bilan; to‘g‘ri variant maqolni emas, umumlashgan hikmatni beradi.', '2–3-qism xatolari: ikkala yo‘lda savolsiz tinglab 5 fakt; raqam va ismlarga e’tibor; qayta eshitish faqat bir marta.'],
+  speak:['Mavzudan chiqish yoki vaqtni to‘ldirmaslik: kuniga 12 savol (ertalab 6 + kechqurun 6), har biri qayta yoziladi; 60 soniyalik tayyorgarlik tartibi yoddan.', 'Aniqlik: kuniga bitta javobni matnga aylantirib xatolarni belgilang; 5 ta tayyor jumla qolipi.', 'Talaffuz: gapirishdan oldin 5 daqiqa juftliklar — ص/س، ط/ت، ح/خ/ه، ء/ع.'],
+  write:['R kunlari bekor — keyingi mockgacha har kuni uchlik (T); 3 daqiqalik tekshiruv majburiy; haftasiga 2 insho tashqi tekshiruvga, 24 soat ichida qayta yozish.', 'So‘z soni kam bo‘lsa: kuniga 15 daqiqa terish mashqi.', 'Mavzudan chiqish: yozishdan oldin har yo‘naltiruvchi g‘oyani belgilab, paragrafga biriktiring.']};
+const MLOSS = [['bilim', 'Bilim yo‘q'], ['oqish', 'Noto‘g‘ri o‘qidim'], ['vaqt', 'Vaqt yetmadi'], ['etibor', 'E’tiborsizlik'], ['taxmin', 'Sof taxmin']];
+function mockTarget(d){ return ({4:'diagnostika', 11:'≥ 110', 18:'≥ 115', 25:'≥ 120', 32:'≥ 125', 35:'≥ 128'})[d] || ''; }
 function renderMock(){
-  const d = MOCK.d, y = DY(d), doc = mockDoc(d), ms = mockScore(doc);
-  const row = (key, name, desc, btn) => `<div class="row"><div><b>${name}</b><div class="note">${desc}</div></div><span class="badge ${ms.s[key] !== null ? 'navy' : ''}" style="${ms.s[key] === null ? 'background:var(--line);color:var(--ink)' : ''}">${ms.s[key] !== null ? ms.s[key] + '/30' : '—'}</span>${btn}</div>`;
-  const useOffG = OFF.gram && OFF.gram.length && !(PS.offg || 0) || (doc.gram && doc.gram.off);
-  $('#view').innerHTML = `<div class="daybar"><div><div class="eyebrow">To‘liq Tanal mock · ${d}-kun · ${y.wd}, ${fmtDate(y.date)}</div><h1 class="tt"><span>${ms.parts === 5 ? `Natija: ${ms.total} / 150` : 'Mock — 5 qism'}</span></h1></div></div>
-    ${doc.est === undefined ? `<section class="blk"><h4>Boshlashdan oldin taxmin</h4><p style="margin:0 0 8px">Jami necha ball olaman deb o‘ylaysiz (/150)?</p><div class="chips">${[70, 85, 100, 115, 130].map(v => `<button class="chip" data-mest="${v}">${v}</button>`).join('')}<button class="chip" data-mest="0">Taxminsiz</button></div></section>` : (doc.est ? `<p class="note">Taxminingiz: ${doc.est}/150${ms.parts === 5 ? ` → natija ${ms.total} (${ms.total - doc.est >= 0 ? '+' : ''}${ms.total - doc.est})` : ''}</p>` : '')}
-    <div class="mocksec">
-      ${row('lis', '1. Eshitish va suhbat', '15 savol × 2 ball, 20–25 daqiqa', `<button class="btn sm" id="mL">${doc.lis ? 'Qayta' : 'Boshlash'}</button>`)}
-      ${row('gram', '2. Grammatika', `30 savol × 60 s${useOffG ? ' · Tanal rasmiy namunasi' : ' · zaif mavzularga ko‘proq'}`, `<button class="btn sm" id="mG">${doc.gram ? 'Qayta' : 'Boshlash'}</button>`)}
-      ${row('read', '3. O‘qish', '3 matn: 6 + 8 + 10 savol, 35 daqiqa', `<button class="btn sm" id="mR">${doc.read ? 'Ko‘rish' : 'Boshlash'}</button>`)}
-      ${row('write', '4. Yozish', '100 so‘z (18 daq) + 200 so‘z (18 daq), qaytib bo‘lmaydi', `<button class="btn sm" id="mW">${doc.write ? 'Ko‘rish' : 'Boshlash'}</button>`)}
-      ${row('speak', '5. Gapirish', '6 savol, <span class="ar">«استعد»</span> 30 s, javob 30/45/60 s', `<button class="btn sm" id="mS">${doc.speak ? 'Qayta' : 'Boshlash'}</button>`)}
-    </div>
-    ${ms.parts ? `<section class="blk"><h4>Profil</h4><div class="prof">${[['lis', 'Eshitish'], ['gram', 'Grammatika'], ['read', 'O‘qish'], ['write', 'Yozish'], ['speak', 'Gapirish']].map(([k2, l]) => `<div><b>${ms.s[k2] ?? '—'}</b><span>${l} /30</span></div>`).join('')}<div><b>${ms.total}</b><span>jami /${ms.parts * 30}</span></div></div></section>` : ''}
+  const d = MOCK.d, y = DY(d), doc = mockDoc(d), ms = mockScore(doc), mk = y.mk || {}, M = rmImg(mk.r), L = lisMocks().find(s => s.id === 'L' + mk.id);
+  const gmode = /GM1/.test(mk.g || '') ? 'pdf' : (/Rasmiy/i.test(mk.g || '') && OFF.gram && OFF.gram.length ? 'off' : 'mix');
+  const desc = {gram:`30 savol × 60 s · ${esc(mk.g || 'aralash')}`, read:`3 qism × 6 savol, 1,5+6 / 5+8 / 7+10 · ${esc(mk.rl || mk.r || 'Claude matni')}`,
+    lis:`6 + 6 + 6 savol, har qismga 7 daqiqa · ${L ? esc(L.title) : esc(mk.l || '')}`, speak:`6 savol, 60 s tayyorgarlik + 30/30/45/45/60/60 s · ${esc(mk.s || '')}`, write:'100/15, 150/20, 200/30 daqiqa, qaytib bo‘lmaydi'};
+  const row = (key, name) => { const v = ms.s[key], man = doc[key] && doc[key].manual !== undefined;
+    return `<div class="row"><div><b>${name}</b><div class="note">${desc[key]}</div></div><span class="badge ${v !== null ? 'navy' : ''}" style="${v === null ? 'background:var(--line);color:var(--ink)' : ''}">${v !== null ? v + '/30' + (man ? ' (qo‘lda)' : '') : '—'}</span>
+      <span style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><button class="btn sm" data-mgo="${key}">${doc[key] ? 'Ko‘rish' : 'Boshlash'}</button><input type="number" min="0" max="30" step="0.5" inputmode="decimal" class="mman" data-mman="${key}" placeholder="/30" aria-label="${name}: ballni qo‘lda kiritish" style="width:70px"></span></div>`; };
+  const weak = MSEC.filter(([k2]) => ms.s[k2] !== null && ms.s[k2] < 25);
+  const an = doc.an || {};
+  $('#view').innerHTML = `<div class="daybar"><div><div class="eyebrow">To‘liq Tanal mock ${esc(mk.id || '')} · ${d}-kun · ${y.wd}, ${fmtDate(y.date)}${mockTarget(d) ? ' · maqsad ' + mockTarget(d) : ''}</div><h1 class="tt"><span>${ms.parts === 5 ? `Natija: ${ms.total} / 150` : 'Mock — 5 bo‘lim, real tartib'}</span></h1></div></div>
+    ${doc.est === undefined ? `<section class="blk"><h4>Boshlashdan oldin taxmin</h4><p style="margin:0 0 8px">Jami necha ball olaman deb o‘ylaysiz (/150)?</p><div class="chips">${[95, 105, 115, 125, 135].map(v => `<button class="chip" data-mest="${v}">${v}</button>`).join('')}<button class="chip" data-mest="0">Taxminsiz</button></div></section>` : (doc.est ? `<p class="note">Taxminingiz: ${doc.est}/150${ms.parts === 5 ? ` → natija ${ms.total} (${ms.total - doc.est >= 0 ? '+' : ''}${ms.total - doc.est})` : ''}</p>` : '')}
+    <p class="note">Bo‘limni qog‘oz yoki PDF’da ishlagan bo‘lsangiz (masalan, GM1 kaliti 6-betda), ballni o‘ng tomondagi maydonga /30 shkalada kiriting. Bo‘limlar orasida 5 daqiqalik tanaffus — faqat tinglashdan keyin.</p>
+    <div class="mocksec">${MSEC.map(([k2, n]) => row(k2, n)).join('')}</div>
+    ${ms.parts ? `<section class="blk"><h4>Profil · C2 uchun har bo‘limda ≈ 25/30</h4><div class="prof">${MSEC.map(([k2, l]) => `<div><b style="${ms.s[k2] !== null && ms.s[k2] < 25 ? 'color:var(--crimson)' : ''}">${ms.s[k2] ?? '—'}</b><span>${l.slice(3)} /30</span></div>`).join('')}<div><b>${ms.total}</b><span>jami /${ms.parts * 30}</span></div></div></section>` : ''}
+    ${ms.parts ? `<section class="blk"><h4>Tahlil (60 daqiqa) va keyingi hafta</h4>
+      ${weak.length ? weak.map(([k2, l]) => `<h5 class="sph">${l.slice(3)}: ${ms.s[k2]}/30 — 25 dan ${25 - ms.s[k2]} ball kam</h5><ul>${MRULE[k2].map(r => `<li>${esc(r)}</li>`).join('')}</ul>`).join('') : '<p class="note" style="margin:0">Hamma bajarilgan bo‘lim 25/30 yoki undan yuqori. Hajm qo‘shmang, uyquni himoya qiling.</p>'}
+      ${ms.parts === 5 && ((d === 11 && ms.total < 105) || (d === 18 && ms.total < 110)) ? '<p style="color:var(--crimson);margin:8px 0 0">Jami past: vaqtning 80 % i ikkita eng past bo‘limga; kam unumli grammatika (nisba, ta’ajjub, badal/tavkid, mamnu’) va kechki CB savoli olib tashlanadi.</p>' : ''}
+      <p class="note" style="margin:10px 0 4px">Yo‘qotilgan ballar turi (sonini kiriting):</p>
+      <div class="chips">${MLOSS.map(([k2, l]) => `<label class="chip" style="gap:6px">${l} <input type="number" min="0" max="60" data-loss="${k2}" value="${(an.loss || {})[k2] ?? ''}" style="width:52px"></label>`).join('')}</div>
+      <label class="note" for="mTop3" style="display:block;margin-top:10px">Top-3 xato turi (dushanba–chorshanba 07:15–07:35 slotlariga):</label>
+      <textarea id="mTop3" class="diary" style="min-height:80px" placeholder="1) … 2) … 3) …">${esc(an.top3 || '')}</textarea>
+      <div class="cta"><button class="btn red" id="mAn">Tahlilni saqlash</button><span class="note" id="mAnSt">${an.at ? 'saqlangan' : ''}</span></div></section>` : ''}
     ${canDoHtml(d)}
     <div class="cta"><button class="btn alt" id="mExit">Mockdan chiqish</button></div>`;
   $('#view').querySelectorAll('[data-mest]').forEach(b => b.onclick = () => { const k = 'k' + pad2(d); setDayDoc(k, Object.assign({}, dayDoc(k) || {}, {est:+b.dataset.mest})); renderMock(); });
-  $('#mL').onclick = () => { listenDay = d; LSN = null; const g = dayDoc(genSetKey(d)); const s = lisNext() || (g && g.set) || null; if (s) LSN = {set:s, pi:0, ans:{}, plays:{}, shown:{}, media:{}, mock:d}; setView('listen'); };
-  $('#mG').onclick = () => { if (useOffG) { PS.offg = 1; savePlan(); startOfficialGram(d); } else preset({list:quotaList(learnedTopics(d), 30), timer:60, mock:{d}, label:d + '-kun mock: grammatika'}); };
-  $('#mR').onclick = () => { readDay = d; readOff = false; setView('read'); };
-  $('#mW').onclick = () => { writeDay = d; wPart = 0; setView('write'); };
-  $('#mS').onclick = () => { speakDay = d; spOpen(d, 'exam'); };
+  const go = {
+    gram:() => { if (gmode === 'off') { PS.offg = 1; savePlan(); startOfficialGram(d); } else preset({list:quotaList(learnedTopics(d), 30), timer:60, mock:{d}, label:d + '-kun mock: grammatika' + (gmode === 'pdf' ? ' (GM1 o‘rniga)' : '')}); },
+    read:() => { readDay = d; readOff = M ? M.id : false; setView('read'); },
+    lis:() => { listenDay = d; LSN = null; const g = dayDoc(genSetKey(d)); const s = L || lisNext() || (g && g.set) || null; if (s) lisStart(s, d); setView('listen'); },
+    speak:() => { speakDay = d; const sp = y.sp; if (sp && spBankOK(sp)) spBank(d, sp); else spOpen(d, 'exam'); },
+    write:() => { writeDay = d; wPart = 0; setView('write'); }};
+  $('#view').querySelectorAll('[data-mgo]').forEach(b => b.onclick = () => go[b.dataset.mgo]());
+  $('#view').querySelectorAll('[data-mman]').forEach(inp => inp.onchange = () => { const v = parseFloat(inp.value); if (isNaN(v)) return; mockSave(d, inp.dataset.mman, {manual:Math.max(0, Math.min(30, v))}); renderMock(); });
+  const ma = $('#mAn'); if (ma) ma.onclick = () => { const loss = {}; $('#view').querySelectorAll('[data-loss]').forEach(i => { if (i.value !== '') loss[i.dataset.loss] = +i.value; });
+    const k = 'k' + pad2(d); setDayDoc(k, Object.assign({}, dayDoc(k) || {}, {an:{top3:$('#mTop3').value, loss, at:Date.now()}})); markTask(d, 'm4', true); $('#mAnSt').textContent = 'saqlandi'; };
   $('#mExit').onclick = () => { MOCK = {on:false, d:0}; setView('today'); };
   bindCanDo(d);
 }
@@ -1713,28 +1905,32 @@ function canDoHtml(d){
   const L = PL.cando || []; if (!L.length) return '';
   const cur = (PS.cd || {})['d' + d] || {};
   const lv = ['Hali yo‘q', 'Yordam bilan', 'Mustaqil'];
-  return `<section class="blk"><h4>«Qila olaman» — o‘zingizni baholang</h4><p class="note" style="margin:0 0 8px">Baho uchun emas: ikki haftadan keyin solishtirasiz. Har bandning dalili — mock natijasi.</p>
-    ${L.map(c => `<div class="rq" style="padding-top:8px;margin-top:8px"><div>${esc(c.t)}</div><div class="note">${esc(c.qism)} · dalil: ${esc(c.dalil)}</div><div class="chips" style="margin-top:6px">${lv.map((l, i) => `<button class="chip" data-cd="${esc(c.id)}" data-v="${i}" aria-pressed="${cur[c.id] === i}">${l}</button>`).join('')}</div></div>`).join('')}</section>`;
+  return `<details class="blk"><summary style="cursor:pointer;font-weight:600">«Qila olaman» — o‘zingizni baholang (${L.length} band)</summary><p class="note" style="margin:8px 0">Baho uchun emas: ikki haftadan keyin solishtirasiz. Har bandning dalili — mock natijasi.</p>
+    ${L.map(c => `<div class="rq" style="padding-top:8px;margin-top:8px"><div>${esc(c.t)}</div><div class="note">${esc(c.qism)} · dalil: ${esc(c.dalil)}</div><div class="chips" style="margin-top:6px">${lv.map((l, i) => `<button class="chip" data-cd="${esc(c.id)}" data-v="${i}" aria-pressed="${cur[c.id] === i}">${l}</button>`).join('')}</div></div>`).join('')}</details>`;
 }
 function bindCanDo(d){ $('#view').querySelectorAll('[data-cd]').forEach(b => b.onclick = () => { PS.cd = PS.cd || {}; const c = PS.cd['d' + d] = PS.cd['d' + d] || {}; c[b.dataset.cd] = +b.dataset.v; savePlan(); b.parentElement.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', x === b)); }); }
 
 /* ---------- vocabulary (C1: imtihon sanasiga bog‘langan takror) ---------- */
-const INT = [0, 1, 2, 4, 7, 10, 14];
+const INT = [0, 1, 3, 8, 18, 18, 18];                 // +1, +3, +8, +18 kun (hisobot: takror jadvali)
+const MOFF = 4000, MAQ = PL.maqol || [], NEWSTOP = 34;   // 15-dekabrdan keyin yangi karta yo‘q
+const maqIntro = d => MAQ.length ? Math.min(MAQ.length, DY(Math.min(Math.max(d, 1), NEWSTOP)).mq || 0) : 0;
 const dnOf = s => { const t = new Date(s + 'T12:00:00'); return Math.floor((t - t.getTimezoneOffset() * 6e4) / 864e5); };
 const EXAM_DN = dnOf(DAYS[ND - 1].date);
 const VX = new Set(PL.vx || []), VADD = PL.vadd || [], UOFF = 5000;
 VS.u = VS.u || [];
-function vItem(i){ return i < NV ? PL.vocab[i] : (i < UOFF ? VADD[i - NV] && [VADD[i - NV].ar, VADD[i - NV].uz, VADD[i - NV].ex] : VS.u[i - UOFF]); }
+function vItem(i){ if (i >= MOFF && i < UOFF) { const m = MAQ[i - MOFF]; return m && [m.ar, m.uz + (m.ok ? '' : ' (manbada tasdiqlanmagan)'), '', 'maqol']; }
+  return i < NV ? PL.vocab[i] : (i < UOFF ? VADD[i - NV] && [VADD[i - NV].ar, VADD[i - NV].uz, VADD[i - NV].ex] : VS.u[i - UOFF]); }
 function addUserWord(ar, uz){ if (!ar) return; const n = norm(ar); if (VS.u.some(w => norm(w[0]) === n)) return; VS.u.push([ar, uz || '']); saveVoc(); }
 let vocDay = selDay, vq = null, vdir = 'auto';
-function introducedUpTo(d){ return DY(Math.min(d, ND)).v[1]; }
-function addIntroLim(d){ if (!VADD.length) return 0; const from = 5, to = 24; if (d < from) return 0; return Math.min(VADD.length, Math.ceil(VADD.length / (to - from + 1)) * (Math.min(d, to) - from + 1)); }
+function introducedUpTo(d){ return DY(Math.min(d, NEWSTOP)).v[1]; }
+function addIntroLim(d){ if (!VADD.length) return 0; const from = 5, to = 24; d = Math.min(d, NEWSTOP); if (d < from) return 0; return Math.min(VADD.length, Math.ceil(VADD.length / (to - from + 1)) * (Math.min(d, to) - from + 1)); }
 function dueOf(i, box, today){ const iv = INT[box] || 14, cap = EXAM_DN - 1 - (i % 4); return today < cap ? Math.min(today + iv, cap) : today + iv; }
 function buildQueue(){
   const today = dayNum(), td = Math.max(todayIdx(), vocDay), lim = introducedUpTo(td), alim = addIntroLim(td), q = [];
   const consider = i => { const c = VS.c[i]; if (!c || c[1] <= today) q.push(i); };
   for (let i = 0; i < lim; i++) if (!VX.has(i)) consider(i);
   for (let j = 0; j < alim; j++) consider(NV + j);
+  for (let j = 0, mn = maqIntro(td); j < mn; j++) consider(MOFF + j);
   VS.u.forEach((w, j) => consider(UOFF + j));
   const fresh = q.filter(i => !VS.c[i]), due = q.filter(i => VS.c[i]);
   return shuffle(due).concat(shuffle(fresh));
@@ -1803,11 +1999,44 @@ document.addEventListener('keydown', e => {
   else if (vq.flip && e.key === '3') grade('ok');
 });
 
+/* ---------- arabcha terish testi (3 daqiqa) ---------- */
+let TYP = null, tyTimer = null;
+function typSource(){ const E = PL.essays || []; const i = ((PS.typ || []).length) % Math.max(1, E.length); return String((E[i] || {}).x || '').replace(/\n+/g, ' ').split(/\s+/).slice(0, 140).join(' '); }
+function renderTyping(){
+  clearInterval(tyTimer);
+  const hist = PS.typ || [], last = hist[hist.length - 1];
+  const adv = r => !r ? '' : (r.wpm >= 25 && r.acc >= 95 ? 'Tezlik yetarli: 1–14-kunlarda kuniga 10 daqiqa tezlik mashqi.' : (r.wpm >= 15 ? 'O‘rtacha: kuniga 15 daqiqa — eng ko‘p ishlatiladigan harf va iboralar.' : 'Sekin: ikki hafta davomida kuniga 20 daqiqa Noqta darslari. Vaqtli inshoda yangi usul tezlashmaguncha eski usulda yozing.'));
+  if (!TYP) TYP = {src:typSource(), t0:0, done:false, text:''};
+  const S = TYP;
+  $('#view').innerHTML = `<div class="daybar"><div><div class="eyebrow">Arabcha terish · 3 daqiqalik test</div><h1 class="tt"><span>${S.done ? `Natija: ${S.res.wpm} so‘z/daq · ${S.res.acc}%` : 'Matnni ko‘chirib yozing'}</span></h1></div><span class="timer" id="tyT">${S.done ? '' : '3:00'}</span></div>
+    <section class="blk"><div class="passage" dir="rtl" lang="ar" style="font-size:20px">${esc(S.src)}</div></section>
+    <textarea class="arw" id="tyA" dir="rtl" lang="ar" placeholder="Shu yerga yozing — taymer birinchi harfda boshlanadi" aria-label="Terish maydoni" ${S.done ? 'readonly' : ''}>${esc(S.text)}</textarea>
+    ${S.done ? `<section class="blk"><p style="margin:0">${adv(S.res)}</p><p class="note">Imtihonda 450 so‘zni 60 daqiqada yozasiz — fikrlash vaqti bilan daqiqasiga ~15 so‘zlik ijodiy tezlik kerak.</p></section>` : ''}
+    <div class="cta">${S.done ? '<button class="btn red" id="tyNew">Yangi test</button>' : ''}<a class="btn alt" href="https://noqta.tn/en/arabic-typing-tutor" target="_blank" rel="noopener">Noqta — arabcha terish darslari</a></div>
+    ${hist.length ? `<p class="note">Oldingi natijalar: ${hist.slice(-8).map(r => `${r.wpm} so‘z/daq (${r.acc}%)`).join(' · ')}</p>` : ''}
+    ${last && !S.done ? `<p class="note">${adv(last)}</p>` : ''}`;
+  const ta = $('#tyA');
+  const finish = () => { clearInterval(tyTimer); if (S.done) return;
+    const A = norm(ta.value).split(' ').filter(Boolean), B = norm(S.src).split(' ');
+    const ok = A.filter((w, i) => w === B[i]).length, mins = Math.max(0.5, Math.min(3, (Date.now() - S.t0) / 60000));
+    S.res = {wpm:Math.round(ok / mins), acc:A.length ? Math.round(ok / A.length * 100) : 0, n:A.length, at:Date.now()}; S.done = true; S.text = ta.value;
+    PS.typ = (PS.typ || []).concat([S.res]).slice(-30); savePlan(); markTask(selDay, 'tK', true); renderTyping(); };
+  const tick = () => { const el = $('#tyT'); if (!el || view !== 'typing') return clearInterval(tyTimer); const left = Math.round((S.t0 + 180000 - Date.now()) / 1000);
+    if (left <= 0) return finish(); el.textContent = `${Math.floor(left / 60)}:${pad2(left % 60)}`; el.classList.toggle('low', left < 30); };
+  if (!S.done) {
+    ta.oninput = () => { S.text = ta.value; if (!S.t0) { S.t0 = Date.now(); tyTimer = setInterval(tick, 500); } };
+    if (S.t0) tyTimer = setInterval(tick, 500);
+    ta.onpaste = e => e.preventDefault();
+  }
+  const nw = $('#tyNew'); if (nw) nw.onclick = () => { TYP = null; renderTyping(); };
+  paintAr();
+}
+
 /* ---------- wrong list ---------- */
 function renderWrong(){
   const qs = D.q.filter(q => P.w[q.i]), due = qs.filter(q => wDue(q.i));
   $('#view').innerHTML = `<div><div class="eyebrow">Xatolarim</div><h1 class="tt"><span>Qayta ishlanadigan savollar</span></h1>
-    <p class="note">Xato savol 6 soatdan keyin, so‘ng 3 kundan keyin qaytadi; ikki marta oraliq bilan to‘g‘ri yechilsa ro‘yxatdan chiqadi. To‘g‘ri topilganda shu mavzudan yangi o‘xshash savol qo‘shiladi.</p></div>
+    <p class="note">Xato savol ertasi kuni, so‘ng 3 va 8 kundan keyin qaytadi (+1, +3, +8); uch marta oraliq bilan to‘g‘ri yechilsa ro‘yxatdan chiqadi. To‘g‘ri topilganda shu mavzudan yangi o‘xshash savol qo‘shiladi.</p></div>
     ${qs.length ? `<div class="cta"><button class="btn red" id="drill" ${due.length ? '' : 'disabled'}>Muddati kelganlarni yechish (${due.length})</button><span class="note">Jami ro‘yxatda: ${qs.length}</span></div><div class="wl">${qs.slice(0, 200).map(wItem).join('')}</div>`
       : `<div class="empty">Hozircha xato yo‘q. Mashq bo‘limida test yeching — xato qilgan savollaringiz shu yerga tushadi.</div>`}`;
   const d = $('#drill'); if (d) d.onclick = () => drillWrong(0, null);
@@ -1829,7 +2058,7 @@ function renderStats(){
   const lis = Object.values(PS.lis || {});
   const cal = (PS.cal || []).slice(-6);
   const tE = es.filter(x => x.e.fb.tanal !== undefined);
-  $('#view').innerHTML = `<div><div class="eyebrow">Natijalar · imtihongacha ${Math.max(0, EXAM - todayIdx())} kun</div><h1 class="tt"><span>Umumiy holat</span></h1></div>
+  $('#view').innerHTML = `<div><div class="eyebrow">Natijalar · imtihongacha ${Math.max(0, examDay() - todayIdx())} kun</div><h1 class="tt"><span>Umumiy holat</span></h1></div>
    <div class="stats-row">
      <div class="stat"><b>${fp === null ? '—' : fp + '%'}</b><span>yangi savollar, birinchi urinishda to‘g‘ri (asosiy ko‘rsatkich)</span></div>
      <div class="stat"><b>${done}/${ND}</b><span>to‘liq bajarilgan kun</span></div>
@@ -1910,7 +2139,15 @@ function spSave(d, kind, sess){
   const L = (doc[kind] || []).filter(x => x.at !== sess.at); L.push(sess); L.sort((a,b) => a.at - b.at);
   doc[kind] = L; setDayDoc(k, doc);
 }
-const topicLabel = (d, id) => id === 'day' ? DY(d).w.t : ((SP_TOP.find(x => x[0] === id) || [0, id])[1]);
+const topicLabel = (d, id) => id === 'day' ? dayTitle(d) : ((SP_TOP.find(x => x[0] === id) || [0, id])[1]);
+const spBankOK = sp => !!(sp && MED.speak && (MED.speak[sp.b] || [])[sp.n - 1] && (MED.speak[sp.b][sp.n - 1].q || []).length);
+function spBank(d, sp){
+  const V = (MED.speak[sp.b] || [])[sp.n - 1]; if (!V) return spOpen(d, 'exam');
+  const qs = V.q.slice(0, 6).map((q, i) => ({lv:({30:1, 45:2, 60:3})[q.sec] || [1, 1, 2, 2, 3, 3][i] || 3, img:q.img, s:String(q.s || ''), uz:'', din:!!q.din, lvl:q.lv || ''}));
+  speakDay = d; SPK = {mode:'exam', d, qs, k:0, ans:qs.map(() => ''), phase:'ready', at:Date.now(), reveal:true, bank:V.id};
+  setView('speak');
+}
+const dayTitle = d => { const y = DY(d); return ((y.wl || []).slice(-1)[0] || {}).t || y.w.t; };
 function spOpen(d, mode){
   speakDay = d; setView('speak');
 }
@@ -1923,13 +2160,15 @@ function renderSpeak(){
   if (S.mode === 'redo') return renderRedo();
   if (S.mode === 'chat') return renderChat();
   const d = speakDay, y = DY(d), doc = spDoc(d), ex = doc.ex || [], ch = doc.ch || [];
-  const dayT = y.w2 ? y.w2.q2.title : y.w.t;
+  const dayT = dayTitle(d);
   const chip = (id, l) => `<button class="chip" data-tp="${id}" aria-pressed="${!S.own && S.topic === id}">${id === 'day' ? `Bugungi mavzu: <span class="ar">${esc(dayT)}</span>` : esc(l)}</button>`;
   $('#view').innerHTML = `<div class="daybar"><div><div class="eyebrow">Muhodasa · ${d}-kun</div><h1 class="tt"><span>Og‘zaki nutq</span><small>Tanal formatida, Claude bilan</small></h1></div>
       <div class="nav"><button id="pv" ${d <= 1 ? 'disabled' : ''} aria-label="Oldingi">‹</button><button id="nx" ${d >= ND ? 'disabled' : ''} aria-label="Keyingi">›</button></div></div>
     <section class="blk"><h4 style="color:var(--navy)">Imtihon rejimi · 6 savol</h4>
-      <p style="margin:0 0 10px">Tanal’dagidek: savol ovozda ikki marta o‘qiladi, keyin 30 soniya «استعد» — javobni ichingizda tayyorlaysiz, so‘ng gapirasiz: oddiy savolga 30, o‘rtaga 45, murakkabga 60 soniya. Har savol 5 ball, jami 30. Oxirida Claude har javobni tuzatadi, namunaviy javob beradi; shu savolga qayta javob berib mashq qilishingiz mumkin.</p>
+      <p style="margin:0 0 10px">Tanal’dagidek: savol beriladi, keyin 60 soniya «استعد» — javobni ichingizda tayyorlaysiz (ovoz chiqarmang: tayyorgarlikdagi gap yozilmaydi), so‘ng gapirasiz: 30/30/45/45/60/60 soniya. Har savol 5 ball, jami 30. Oxirida Claude har javobni tuzatadi, namunaviy javob beradi; shu savolga qayta javob berib mashq qilishingiz mumkin.</p>
       <div class="cta"><button class="btn red" id="spEx" ${isPend('spg' + d) ? 'disabled' : ''}>Imtihonni boshlash</button><span class="note" id="spSt">${isPend('spg' + d) ? waitHtml('spg' + d, 'Savollar tuzilmoqda', '20–40 s') : ''}</span></div></section>
+    ${MED.speak && ((MED.speak.s100 || []).length || (MED.speak.sm || []).length) ? `<section class="blk"><h4 style="color:var(--navy)">Bankdan · S100 va Speaking Mock</h4><p style="margin:0 0 10px">Imtihonda tushgan turdagi savollar (PDF’dan rasm). Rejadagi bugungi variant: ${y.sp ? SPLAB(y.sp) : '—'}.</p>
+      <div class="cta"><select id="spSel" aria-label="Variant">${[['s100', 'S100'], ['sm', 'SM']].flatMap(([b, l]) => (MED.speak[b] || []).map((v, i) => `<option value="${b}:${i + 1}" ${y.sp && y.sp.b === b && y.sp.n === i + 1 ? 'selected' : ''}>${l} ${i + 1}${(v.q || []).some(q => q.din) ? ' *' : ''}</option>`)).join('')}</select><button class="btn red" id="spBk">Boshlash</button></div><p class="note" style="margin:6px 0 0">* — diniy mazmunli savoli bor variant.</p></section>` : ''}
     <section class="blk"><h4 style="color:var(--navy)">Erkin suhbat</h4>
       <p style="margin:0 0 10px">Tanal’da erkin suhbat yo‘q — bu qo‘shimcha ravonlik mashqi. Mavzuni tanlang: Claude arabcha savol beradi, siz javob berasiz.</p>
       <div class="chips">${SP_TOP.map(([id, l]) => chip(id, l)).join('')}</div>
@@ -1943,6 +2182,7 @@ function renderSpeak(){
   $('#pv').onclick = () => { speakDay--; syncDay(speakDay); renderSpeak(); };
   $('#nx').onclick = () => { speakDay++; syncDay(speakDay); renderSpeak(); };
   $('#spEx').onclick = () => spGenerate(d);
+  const bk = $('#spBk'); if (bk) bk.onclick = () => { const [b, n] = $('#spSel').value.split(':'); spBank(d, {b, n:+n}); };
   $('#view').querySelectorAll('.chip[data-tp]').forEach(c => c.onclick = () => { SPK.topic = c.dataset.tp; SPK.own = ''; renderSpeak(); });
   $('#view').querySelectorAll('.chip[data-cm]').forEach(c => c.onclick = () => { PREF.chat = c.dataset.cm; lsSet('pref', PREF); renderSpeak(); });
   $('#spOwn').oninput = e => { SPK.own = e.target.value; };
@@ -1965,7 +2205,7 @@ async function spGenerate(d){
   const s = await getSample();
   if (!s) { const st = $('#spSt'); if (st) st.textContent = 'Claude bu ko‘rinishda mavjud emas — ilovani claude.ai’da oching.'; return; }
   pendStart(pk); if (view === 'speak' && SPK.mode === 'menu') renderSpeak();
-  const y = DY(d), used = (PS.spq || []).slice(-40), dayT = y.w2 ? y.w2.q2.title : y.w.t;
+  const y = DY(d), used = (PS.spq || []).slice(-40), dayT = dayTitle(d);
   const prompt = `Sen Tanal (التنال العربي) imtihonining og‘zaki (التحدث) qismi uchun savol tuzuvchisan. Savollar B2–C1 darajadagi talaba uchun.
 Fusho arab tilida 6 ta YANGI savol tuz, Tanal formatida (avval oson tanishtiruvchi savollar, keyin qiyinroq):
 - 2 ta oddiy savol (lv 1): o‘zi, kundalik hayoti, odatlari haqida; javobga 30 soniya (masalan: مَتَى تَسْتَيْقِظُ؟ — مَاذَا تَفْعَلُ بَعْدَ العَمَلِ؟);
@@ -1991,10 +2231,10 @@ Faqat JSON qaytar: {"q":[{"lv":1,"s":"arabcha savol","uz":"o‘zbekcha tarjimasi
   }
 }
 /* A5: savol ovozda (2 marta) → «استعد» 30 s → javob */
-const PREP = 30;
+const PREP = 60;
 function spHear(S){
   const q = S.qs[S.k];
-  if (!TTS) { S.reveal = true; S.phase = 'prep'; S.left = PREP; renderSpQ(); return; }
+  if (!TTS || q.img) { S.reveal = true; S.phase = 'prep'; S.left = PREP; renderSpQ(); return; }
   S.phase = 'hear'; renderSpQ();
   const go = rev => { if (SPK === S && S.phase === 'hear') { if (rev) S.reveal = true; S.phase = 'prep'; S.left = PREP; if (view === 'speak') renderSpQ(); } };
   TTS.speak([...(q.txt ? [{text:q.txt.slice(0, 1990), language:'ar', voice:'glassy'}] : []), {text:q.s, language:'ar'}, {text:q.s, language:'ar'}], {rate:0.95}).then(() => go(false)).catch(() => go(true));
@@ -2002,19 +2242,19 @@ function spHear(S){
 function renderSpQ(){
   clearInterval(sTimer);
   const S = SPK, q = S.qs[S.k], L = SP_LV[q.lv];
-  const showQ = S.reveal || !TTS || S.phase === 'done';
+  const showQ = S.reveal || !TTS || S.phase === 'done' || !!q.img;
   const big = S.phase === 'prep' || S.phase === 'run' ? S.left : (S.phase === 'done' ? 0 : L.t);
   const area = S.phase === 'run' || S.phase === 'done';
   $('#view').innerHTML = `<div class="daybar"><div><div class="eyebrow">Muhodasa · imtihon · ${S.d}-kun${MOCK.on && MOCK.d === S.d ? ' · mock' : ''}</div><div class="dots" aria-label="${S.k + 1}-savol, jami 6">${S.qs.map((_, i) => `<i class="${i < S.k ? 'done' : i === S.k ? 'on' : ''}"></i>`).join('')}</div></div>
       <div class="bigtimer ${(S.phase === 'run' || S.phase === 'prep') && big <= 10 ? 'low' : ''}" id="spT">${big}</div></div>
     <section class="blk"><div class="cta" style="justify-content:space-between"><span class="lv">${S.k + 1}/6 · ${L.n} · javob ${L.t} soniya · 5 ball</span>${showQ ? '' : '<button class="btn alt sm" id="spRev">Matnni ko‘rsatish</button>'}</div>
-      ${showQ ? `${q.txt ? `<div class="passage" style="font-size:19px;margin-top:8px">${esc(q.txt)}</div>` : ''}<div class="spq" style="margin-top:8px">${esc(q.s)}</div>${S.tr ? `<div class="spq-uz">${esc(q.uz)}</div>` : ''}` : `<p class="note" style="margin:10px 0 0">Imtihondagidek: ${q.txt ? 'avval qisqa matn, keyin savol' : 'savol'} ovozda beriladi, matn natijada ko‘rinadi.</p>`}
+      ${showQ ? `${q.txt ? `<div class="passage" style="font-size:19px;margin-top:8px">${esc(q.txt)}</div>` : ''}${q.img ? `<img class="rimg" src="${esc(MURL(q.img))}" alt="Savol">` : `<div class="spq" style="margin-top:8px">${esc(q.s)}</div>`}${S.tr && q.uz ? `<div class="spq-uz">${esc(q.uz)}</div>` : ''}` : `<p class="note" style="margin:10px 0 0">Imtihondagidek: ${q.txt ? 'avval qisqa matn, keyin savol' : 'savol'} ovozda beriladi, matn natijada ko‘rinadi.</p>`}
       ${S.phase === 'prep' ? `<div class="prep" style="margin-top:10px">اِسْتَعِدّ</div><p class="note" style="text-align:center;margin:0">Javobni ichingizda tayyorlang. Vaqt tugagach, javob vaqti o‘zi boshlanadi.</p>` : ''}
       ${S.phase === 'hear' ? '<p style="margin:10px 0 0"><span class="spin"></span> Savol o‘qilmoqda (ikki marta)…</p>' : ''}</section>
     ${area ? `<div><textarea class="ans" id="spA" dir="rtl" lang="ar" placeholder="جَوَابُكَ هُنَا…" aria-label="Javob">${esc(S.ans[S.k])}</textarea>
       <div class="partial" id="spP"></div>
       <div class="wc"><span>So‘zlar: <b id="spN">${words(S.ans[S.k])}</b></span><span class="micnote"></span></div></div>` : ''}
-    <div class="cta">${S.phase === 'ready' ? `<button class="btn red" id="spHear">${ICO.vol}${TTS ? 'Savolni eshitish' : 'Savolni ko‘rish va tayyorlanish'}</button>` : ''}
+    <div class="cta">${S.phase === 'ready' ? `<button class="btn red" id="spHear">${ICO.vol}${TTS && !q.img ? 'Savolni eshitish' : 'Tayyorlanishni boshlash (60 s)'}</button>` : ''}
       ${S.phase === 'prep' ? `<button class="btn red" id="spGo">${ICO.mic}Tayyorman — gapirishni boshlash</button>` : ''}
       ${S.phase === 'run' ? `<button class="btn red" id="spEnd">Javobni tugatdim</button><button class="btn alt mic" id="spMic" hidden></button>` : ''}
       ${S.phase === 'done' ? `<button class="btn red" id="spNext">${S.k < 5 ? 'Keyingi savol' : 'Natijani ko‘rish'}</button><button class="btn alt sm" id="spTr" aria-pressed="${!!S.tr}">Tarjima</button>` : ''}
@@ -2071,7 +2311,7 @@ async function spEvaluate(){
   const s = await getSample();
   if (!s) { SPK.busy = false; SPK.err = 'Claude bu ko‘rinishda mavjud emas. Javoblaringiz saqlandi — ilovani claude.ai’da ochib baholating.'; if (view === 'speak') renderSpeak(); return; }
   pendStart('spe' + sess.at);
-  const items = sess.q.map((q, i) => `${i + 1}) [${SP_LV[q.lv].n}, javobga ${SP_LV[q.lv].t} soniya] ${q.txt ? 'Tinglangan matn: ' + q.txt + '\n' : ''}Savol: ${q.s}\nJavob (${words(sess.a[i])} so‘z): ${sess.a[i] || '(javob berilmadi)'}`).join('\n\n');
+  const items = sess.q.map((q, i) => `${i + 1}) [${SP_LV[q.lv].n}, javobga ${SP_LV[q.lv].t} soniya] ${q.txt ? 'Tinglangan matn: ' + q.txt + '\n' : ''}Savol: ${q.s || '(savol rasmda — matni yo‘q; javobni mazmuni va tuzilishiga qarab bahola)'}\nJavob (${words(sess.a[i])} so‘z): ${sess.a[i] || '(javob berilmadi)'}`).join('\n\n');
   const prompt = `Sen Tanal (التنال العربي) imtihonining gapirish (التحدث) qismi bo‘yicha tajribali, qattiq, lekin adolatli imtihonchisan. Talabaning darajasini oldindan bilmaysan — faqat javoblarga qarab baholaysan.
 Rasmiy format: 6 savol, har biri 5 ball (jami 30). Rasmiy mezonlar: talaffuz; ravonlik (tezlik, uzluksizlik, ikkilanish); lug‘at va tuzilmalarning xilma-xilligi, aniqligi va mosligi; tashabbus, izchillik va fikrlar uyg‘unligi; vaziyatga mos registr (fusha, ammiya emas); jumlalar bog‘liqligi va mazmun rivoji; til to‘g‘riligi (nahv, sarf, keng tarqalgan xatolar).
 Javoblar nutqdan avtomatik matnga aylantirilgan bo‘lishi mumkin: harakatlar, so‘z oxiridagi i’rob va tinish belgilari ko‘rinmasligi yoki tasodifiy bo‘lishi mumkin — ularni xato deb hisoblama; talaffuzni matndan baholab bo‘lmaydi — uni baholama.
@@ -2117,7 +2357,7 @@ function renderSpResult(){
   sess.q.forEach((q, i) => {
     const it = items[i] || {}, a = sess.a[i] || '', L = SP_LV[q.lv] || SP_LV[1], re = (sess.re || {})[i];
     h += `<section class="blk"><div class="cta" style="justify-content:space-between"><span class="lv">${i + 1}. ${L.n} · ${L.t} soniya${it.ball !== undefined ? ' · ' + it.ball + '/5' : ''}</span><span class="note">${words(a)} so‘z</span></div>
-      <div class="spq" style="font-size:23px;margin-top:6px">${esc(q.s)}</div>
+      ${q.img ? `<img class="rimg" src="${esc(MURL(q.img))}" alt="Savol">` : `<div class="spq" style="font-size:23px;margin-top:6px">${esc(q.s)}</div>`}
       <h5 class="sph">Sizning javobingiz</h5><div class="marked">${a ? markErrors(a, it.errors) : '<span class="note">Javob berilmagan</span>'}</div>
       ${it.note ? `<p style="margin:8px 0 0">${esc(it.note)}</p>` : ''}
       ${it.errors && it.errors.length ? `<div class="errs" style="margin-top:10px">${it.errors.map(e => `<div class="err"><div class="pair"><s>${esc(e.x)}</s> ← <ins>${esc(e.f)}</ins></div><span class="k">${e.r ? esc(e.r) : ''}</span><p>${esc(e.uz)}</p></div>`).join('')}</div>` : ''}
@@ -2412,8 +2652,8 @@ const IC = {
   sliders: SVG('<path d="M4 21v-7"/><path d="M4 10V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M20 21v-5"/><path d="M20 12V3"/><path d="M2 14h4"/><path d="M10 8h4"/><path d="M18 16h4"/>')
 };
 let CLF = null;                                   // Claude markazida ajratiladigan vazifa: write | read | speak | mock
-const AIK = {t3:['t3', 'write'], s1:['s1', 'speak'], M:['M', 'mock'], m4:['m4', 'mock']};
-function aiOf(t){ if (AIK[t.id]) return AIK[t.id]; if (t.id === 't4' && (t.parts || []).includes('t4r')) return ['t4r', 'read']; return null; }
+const AIK = {t3:['t3', 'write'], s1:['s1', 'speak']};
+function aiOf(t){ return AIK[t.id] || null; }
 function openClaude(hash){ const u = CLAUDE_URL + (hash ? '#' + hash : ''); try { if (TG && TG.openLink) return TG.openLink(u); } catch(e) {} window.open(u, '_blank', 'noopener'); }
 const tShort = tm => { const m = String(tm).match(/\d{2}:\d{2}/); return m ? m[0] : String(tm).replace(/^≈\s*/, ''); };
 
@@ -2440,7 +2680,7 @@ const startMin = tm => { const m = String(tm).match(/(\d{2}):(\d{2})/); return m
 function sx(t){ const h = strip(t.h), a = aiOf(t); return {id:t.id, tm:strip(t.tm), s:startMin(t.tm), h, sh:h.split(/[:(—]/)[0].trim(), c:(t.act.length || t.diary) ? 1 : 0, p:t.parts || null, ai:a ? a[0] : null, hx:a ? a[1] : null}; }
 function schedDoc(){
   const sv = PS.min; PS.min = {};
-  const days = DAYS.map(y => ({d:y.d, date:y.date, ph:y.ph || 'learn', t:tasksFor(y.d).map(sx)}));
+  const days = DAYS.map(y => ({d:y.d, date:y.date, ph:DY(y.d).ph || 'learn', t:tasksFor(y.d).map(sx)}));
   PS.min = {d1:1}; const min = tasksFor(1).map(sx); PS.min = sv;
   return {v:1, start:DAYS[0].date, n:ND, days, min};
 }
@@ -2455,7 +2695,8 @@ function renderMashq(){
   const t1open = t1 && !taskDone(d, t1) && t1.act.length;
   const vqn = buildQueue().length, sets = lisAll(), ld = PS.lis || {}, ldn = sets.filter(s => ld[s.id]).length;
   const wq = D.q.filter(q => P.w[q.i]), wdue = wq.filter(q => wDue(q.i)).length;
-  const w2 = y.w2, wsub = w2 ? `<span class="ar" lang="ar" dir="rtl">${esc(w2.q1.title)} · ${esc(w2.q2.title)}</span>` : `<span>${esc(y.w.l)}, ${y.w.n} so‘z</span>`;
+  const wl = y.wl || [], wsub = wl.length ? `<span class="ar" lang="ar" dir="rtl">${wl.map(w => esc(w.t)).join(' · ')}</span>` : '<span>Bugun yozish yo‘q</span>';
+  const rimgs = MED.read || [];
   $('#view').innerHTML = `<div class="hub-h"><h1>Mashq</h1><div class="tbar"></div><p>O‘zingiz bajaradigan mashqlar — natija shu yerda saqlanadi.</p></div>
     <div class="tiles">
       <button type="button" class="tile dark" id="mTest">${IC.test}<b>Test</b><span>${t1open ? 'Bugungi: ' + esc(strip(t1.h).split(/[:(—]/)[0].trim()) : 'Erkin mashq'}</span></button>
@@ -2465,12 +2706,15 @@ function renderMashq(){
     </div>
     <button type="button" class="rowbtn" id="mQuiz"><span>${IC.sliders}Mavzu tanlab test</span>${IC.right}</button>
     <button type="button" class="rowbtn" id="mRules"><span>${IC.rules}Qoidalar</span>${IC.right}</button>
-    ${OFF.read && OFF.read.length ? `<button type="button" class="rowbtn" id="mOff"><span>${IC.file}Rasmiy o‘qish namunasi · ${OFF.read.length} matn</span>${IC.right}</button>` : ''}
+    <button type="button" class="rowbtn" id="mRt"><span>${IC.file}O‘qish taymeri (PDF darslari uchun)</span>${IC.right}</button>
+    ${OFF.read && OFF.read.length ? `<button type="button" class="rowbtn" id="mOff"><span>${IC.file}Rasmiy o‘qish namunasi · 3 × 6 savol</span>${IC.right}</button>` : ''}
+    ${rimgs.length ? `<div class="sec">O‘qish mocklari — mock kunlari uchun</div><div class="list">${rimgs.map(x => { const r = dayDoc('rx' + x.id.toLowerCase()); return `<button type="button" class="li" data-rimg="${esc(x.id)}"><span class="t"><b>${esc(x.id)} · 18 savol</b><span>${r && r.sub ? 'Natija: ' + r.score + '/' + r.n : esc(x.t || x.src || '')}</span></span>${IC.right}</button>`; }).join('')}</div>` : ''}
+    <button type="button" class="rowbtn" id="mTyp"><span>${IC.sliders}Arabcha terish testi (3 daqiqa)</span>${IC.right}</button>
     <div class="sec">Claude bilan · claude.ai’da ochiladi</div>
     <div class="list">
-      <button type="button" class="li" data-cl="write"><span class="t"><b>Yozish · ${w2 ? '2 savol' : '1 savol'}</b>${wsub}</span>${IC.ext}</button>
-      <button type="button" class="li" data-cl="speak"><span class="t"><b>Muhodasa · 6 savol</b><span>Ovozli savol, <bdi dir="rtl">«استعد»</bdi> — 30 soniya</span></span>${IC.ext}</button>
-      <button type="button" class="li" data-cl="read"><span class="t"><b>O‘qish · ${y.r.q} savollik matn</b><span>Claude matn tuzadi</span></span>${IC.ext}</button>
+      <button type="button" class="li" data-cl="write"><span class="t"><b>Yozish · ${wl.length ? wl.map(w => w.n).join('/') + ' so‘z' : '—'}</b>${wsub}</span>${IC.ext}</button>
+      <button type="button" class="li" data-cl="speak"><span class="t"><b>Gapirish · 6 savol</b><span><bdi dir="rtl">«استعد»</bdi> — 60 soniya, javob 30/45/60 soniya</span></span>${IC.ext}</button>
+      <button type="button" class="li" data-cl="read"><span class="t"><b>O‘qish · 3 × 6 savol</b><span>Claude real formatda matn tuzadi</span></span>${IC.ext}</button>
     </div>
     <p class="hint">Tugatgach, «Claude» bo‘limida «Bajarildi»ni bosing — bot buni ko‘radi.</p>`;
   $('#mTest').onclick = () => { if (t1open) t1.act[0][1](); else navTo('quiz'); };
@@ -2479,7 +2723,10 @@ function renderMashq(){
   $('#mWr').onclick = () => navTo('wrong');
   $('#mQuiz').onclick = () => navTo('quiz');
   $('#mRules').onclick = () => navTo('rules');
-  const mo = $('#mOff'); if (mo) mo.onclick = () => { readOff = true; if (!dayDoc('roff')) setDayDoc('roff', {p:{texts:OFF.read}, ans:[], sub:false}); setView('read'); };
+  const mo = $('#mOff'); if (mo) mo.onclick = () => openOffRead();
+  $('#mRt').onclick = () => { readDay = d; readOff = 'tm'; setView('read'); };
+  $('#mTyp').onclick = () => navTo('typing');
+  $('#view').querySelectorAll('[data-rimg]').forEach(b => b.onclick = () => { readDay = d; readOff = b.dataset.rimg; setView('read'); });
   $('#view').querySelectorAll('[data-cl]').forEach(b => b.onclick = () => openClaude(b.dataset.cl));
 }
 
@@ -2580,10 +2827,10 @@ function miniStart(){
 
 /* ---------- views ---------- */
 const SIDE = ['rules', 'quiz'];
-const GROUP = {today:'today', mock:'today', quiz:'quiz', write:'skill', read:'skill', listen:'skill', speak:'skill', vocab:'vocab', plan:'more', rules:'more', wrong:'more', stats:'more'};
+const GROUP = {today:'today', mock:'today', quiz:'quiz', write:'skill', read:'skill', listen:'skill', speak:'skill', vocab:'vocab', plan:'more', rules:'more', wrong:'more', stats:'more', typing:'more'};
 const SHEETS = {
   skill:[['write', 'Yozish'], ['read', 'O‘qish'], ['listen', 'Eshitish'], ['speak', 'Muhodasa']],
-  more:[['plan', 'Reja'], ['rules', 'Qoidalar'], ['wrong', 'Xatolarim'], ['stats', 'Natijalar']]
+  more:[['plan', 'Reja'], ['rules', 'Qoidalar'], ['wrong', 'Xatolarim'], ['typing', 'Terish testi'], ['stats', 'Natijalar']]
 };
 function render(){
   if (view === 'mashq') return renderMashq();
@@ -2601,10 +2848,11 @@ function render(){
   else if (view === 'vocab') renderVocab();
   else if (view === 'wrong') renderWrong();
   else if (view === 'stats') renderStats();
+  else if (view === 'typing') renderTyping();
 }
 function setView(v, quiet){
-  if (v === 'write' || v === 'speak' || v === 'mock' || (v === 'read' && !readOff)) { CLF = v; if (v === 'mock') MOCK = {on:false, d:0}; v = 'claude'; }
-  clearInterval(qTimer); clearInterval(wTimer); clearInterval(rTimer); clearInterval(sTimer); clearInterval(dTimer);
+  if (v === 'write' || v === 'speak' || (v === 'read' && !readOff)) { CLF = v; v = 'claude'; }
+  clearInterval(qTimer); clearInterval(wTimer); clearInterval(rTimer); clearInterval(sTimer); clearInterval(dTimer); clearInterval(lTimer); clearInterval(tyTimer);
   if (view === 'speak' && v !== 'speak') {
     micStop(); sayStop();
     if (SPK.mode === 'exam') { if (SPK.phase === 'run') { const ta = $('#spA'); if (ta) SPK.ans[SPK.k] = ta.value; SPK.phase = 'done'; } else if (SPK.phase === 'prep' || SPK.phase === 'hear') SPK.phase = 'ready'; }
@@ -2629,6 +2877,7 @@ function navTo(v){
   if (MOCK.on) MOCK = {on:false, d:0};
   if (v === 'write') { writeDay = selDay; wPart = 0; }
   if (v === 'read') { readDay = selDay; readOff = false; }
+  if (v === 'typing') TYP = null;
   if (v === 'vocab') vocDay = selDay;
   if (v === 'listen') listenDay = selDay;
   if (v === 'speak') { if (SPK.mode === 'result' || SPK.mode === 'redo' || (SPK.mode === 'chat' && SPK.ended)) SPK = {mode:'menu', topic:'day'}; if (SPK.mode === 'menu') speakDay = selDay; }
