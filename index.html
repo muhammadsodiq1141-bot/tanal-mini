@@ -371,6 +371,35 @@ button.wi.hist:hover{border-color:var(--navy)}
 .dprog .track{flex:1;height:8px;border-radius:4px;background:var(--line);overflow:hidden}
 .dprog .track i{display:block;height:100%;background:var(--ok)}
 .dprog b{font-family:var(--f-mono);font-size:14px;white-space:nowrap}
+/* «Hozir» ekrani: taymer, kun chizig‘i, reja bajarilishi, qarz, «Keyingisi» */
+.hzcd{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.hzcd b{font-family:var(--f-mono);font-size:40px;line-height:1;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.hzcd b.late{color:var(--crimson)}
+.hzcd span{font-size:13px;color:var(--muted)}
+.hzs{display:grid;grid-template-columns:repeat(auto-fit,minmax(32px,1fr));gap:4px;margin-top:2px}
+.hzc{display:flex;flex-direction:column;align-items:center;gap:5px;background:none;border:0;padding:6px 0;min-height:44px;cursor:pointer;color:var(--muted);font:inherit}
+.hzc i{display:block;width:100%;height:10px;border-radius:3px;background:var(--line)}
+.hzc b{font-family:var(--f-mono);font-size:10px;font-weight:600;font-variant-numeric:tabular-nums}
+.hzc.ok i{background:var(--ok)}
+.hzc.miss i{background:var(--crimson)}
+.hzc.cur i{background:var(--ink)}
+.hzc.cur b{color:var(--ink)}
+.hzr{margin:0;font-size:13px;color:var(--muted);line-height:1.45}
+.hzr b{color:var(--ink);font-variant-numeric:tabular-nums}
+.hzr b.bad{color:var(--crimson)}
+.hzr b.good{color:var(--ok)}
+.hzq{border:1px solid var(--crimson);background:var(--crimson-soft);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.hzq h4{margin:0;font-size:14px;color:var(--crimson)}
+.hzqi{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--sheet);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-height:44px;cursor:pointer;color:var(--ink);text-align:left;font:inherit}
+.hzqi span{font-size:12px;color:var(--muted);white-space:nowrap}
+.hzqi b{font-size:14px;text-align:right}
+.hzt{position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:60;max-width:560px;margin:0 auto;display:flex;align-items:center;gap:10px;background:var(--bar);color:var(--bar-fg);border-radius:12px;padding:12px 8px 12px 14px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.hzt[hidden]{display:none}
+.hztx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.hztx b{font-size:14px}
+.hztx span{font-size:13px;opacity:.85}
+.hzt .btn{width:auto;flex:0 0 auto;min-height:40px}
+.hzx{background:none;border:0;color:inherit;font-size:22px;line-height:1;min-width:40px;min-height:40px;cursor:pointer}
 .trow{background:var(--sheet);border:1px solid var(--line);border-radius:10px}
 .trow>summary{list-style:none;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 12px;cursor:pointer;min-height:48px}
 .trow>summary::-webkit-details-marker{display:none}
@@ -520,6 +549,20 @@ select,input[type=number],input[type=text],textarea{border-radius:12px;border-co
 .now .what{color:var(--muted);font-size:14px}
 .now .cta .btn{min-height:48px}
 .now .cta .btn:first-child{flex:1 1 100%}
+/* «Hozir» — NOON UI */
+.now.hz{border:1px solid var(--line);gap:10px}
+.hzcd b{font-family:var(--f-ui);font-weight:800;font-size:44px;color:#0D3A1A}
+.hzcd b.late{color:var(--crimson)}
+.hzc i{background:#DCEBD9;height:12px;border-radius:6px}
+.hzc.ok i{background:#1F7A2C}
+.hzc.cur i{background:var(--lime);box-shadow:0 0 0 2px #0D3A1A inset}
+.hzc.miss i{background:#C9545C}
+.hzc b{font-family:var(--f-ui)}
+.hzr b{font-weight:800}
+.hzq{border-radius:16px;border-color:#E3B3B6;box-shadow:var(--shadow)}
+.hzqi{border-radius:12px}
+.hzt{background:var(--g-green);border-radius:16px;bottom:calc(72px + env(safe-area-inset-bottom,0px))}
+.hzt .btn{background:var(--lime);color:#0A2A10;font-weight:800;border-radius:12px}
 
 /* kun rejasi — bitta karta, qatorlar */
 .sec{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:0 4px}
@@ -1190,6 +1233,49 @@ function markTask(d, id, v, pct){
   const k = 'd' + d; PS.done[k] = PS.done[k] || {};
   if (v) PS.done[k][id] = pct === undefined ? 1 : {p:pct}; else delete PS.done[k][id];
   savePlan();
+  if (v) { buzz(); try { doneToast(d, id); } catch(e) {} }
+}
+/* «qattiq ustoz»: boshlash belgisi (bot ta’qibni to‘xtatadi), tebranish, «Keyingisi», reja bajarilishi, qarz */
+function markStart(d, id){ PS.st = PS.st || {}; const k = 'd' + d; PS.st[k] = PS.st[k] || {}; if (PS.st[k][id]) return; PS.st[k][id] = Date.now(); savePlan(); }
+function buzz(){ try { const W = window.Telegram && window.Telegram.WebApp; if (W && W.initData && W.HapticFeedback) W.HapticFeedback.notificationOccurred('success'); else if (navigator.vibrate) navigator.vibrate(60); } catch(e) {} }
+const hhmm = tm => { const m = String(tm).match(/\d{2}:\d{2}/); return m ? m[0] : ''; };
+const tShortName = t => strip(t.h).split(/[:(—]/)[0].trim();
+const nowMin = () => { const n = new Date(); return n.getHours() * 60 + n.getMinutes(); };
+const QFROM = 3, C2P = 80, NOQARZ = ['M', 'x1', 'x2'];
+const counted = t => t.act.length || t.diary;
+function planRate(){
+  const ti = Math.min(todayIdx(), ND), m = nowMin(); let n = 0, c = 0;
+  for (let k = 1; k <= ti; k++) tasksFor(k).filter(counted).forEach(t => { if (k === ti) { const w = taskWindow(t); if (w && w[0] > m) return; } c++; if (taskDone(k, t)) n++; });
+  return {n, c, p:c ? Math.round(n / c * 100) : 0};
+}
+function debtList(){
+  const ti = todayIdx(), m = nowMin(), out = [];
+  const add = (k, f) => { if (k < QFROM || k < 1 || k > ND) return; tasksFor(k).filter(t => counted(t) && t.act.length && !NOQARZ.includes(t.id) && !taskDone(k, t) && f(t)).forEach(t => out.push({d:k, t})); };
+  add(ti - 1, () => true);
+  add(ti, t => { const w = taskWindow(t); return w && w[1] <= m; });
+  return out;
+}
+function doneToast(d, id){
+  if (d !== todayIdx()) return;
+  const L = tasksFor(d), t = L.find(x => x.id === id || (x.parts || []).includes(id));
+  if (!t || !taskDone(d, t)) return;
+  const nx = nowTask(d, L);
+  let el = document.getElementById('hzToast');
+  if (!el) { el = document.createElement('div'); el.id = 'hzToast'; el.className = 'hzt'; el.setAttribute('role', 'status'); document.body.appendChild(el); }
+  el.innerHTML = `<div class="hztx"><b>Bajarildi: ${esc(tShortName(t))}</b><span>${nx ? 'Keyingisi: ' + esc(hhmm(nx.tm)) + ' — ' + esc(tShortName(nx)) : 'Bugungi reja tugadi.'}</span></div>${nx && nx.act[0] ? '<button type="button" class="btn sm" id="hzGo">Boshlash</button>' : ''}<button type="button" class="hzx" id="hzX" aria-label="Yopish">×</button>`;
+  el.hidden = false; clearTimeout(el._t); el._t = setTimeout(() => { el.hidden = true; }, 12000);
+  const g = el.querySelector('#hzGo'); if (g) g.onclick = () => { el.hidden = true; markStart(d, nx.id); nx.act[0][1](); };
+  el.querySelector('#hzX').onclick = () => { el.hidden = true; };
+}
+let hzT = null;
+function hzTick(){
+  const el = document.getElementById('hzCd'); if (!el) { clearInterval(hzT); hzT = null; return; }
+  const w = (el.dataset.w || '').split(',').map(Number); if (w.length !== 2) return;
+  const n = new Date(), s = n.getHours() * 3600 + n.getMinutes() * 60 + n.getSeconds(), a = w[0] * 60, b = w[1] * 60;
+  const [lab, x, cls] = s < a ? ['boshlanishiga', a - s, ''] : s < b ? ['oynasi yopilishiga', b - s, ''] : ['kechikish', s - b, 'late'];
+  const p2 = v => String(v).padStart(2, '0');
+  const f = x >= 3600 ? Math.floor(x / 3600) + ':' + p2(Math.floor(x % 3600 / 60)) + ':' + p2(x % 60) : p2(Math.floor(x / 60)) + ':' + p2(x % 60);
+  el.innerHTML = `<b class="${cls}">${f}</b><span>${lab}</span>`;
 }
 const isDoneRaw = (d, id) => !!(PS.done['d' + d] || {})[id];
 function taskDone(d, t){ return isDoneRaw(d, t.id) || (t.parts ? t.parts.every(p => isDoneRaw(d, p)) : false); }
@@ -1217,7 +1303,8 @@ function renderToday(){
   const before = new Date() < START;
   const done = L.filter(t => taskDone(d, t)).length, cnt = L.filter(t => t.act.length || t.diary).length;
   const nt = nowTask(d, L);
-  const actBtns = (t, big) => t.act.map((a, k) => { ACTS.push(a[1]); return `<button class="btn ${k === 0 || a[0] === 'Boshlash' || a[0].startsWith('Test') ? '' : 'alt'} ${big ? '' : 'sm'}" data-a="${ACTS.length - 1}">${esc(a[0])}</button>`; }).join('');
+  const actBtns = (t, big, dd) => t.act.map((a, k) => { const day = dd || d; ACTS.push(() => { markStart(day, t.id); a[1](); }); return `<button class="btn ${k === 0 || a[0] === 'Boshlash' || a[0].startsWith('Test') ? '' : 'alt'} ${big ? '' : 'sm'}" data-a="${ACTS.length - 1}">${esc(a[0])}</button>`; }).join('');
+  const live = d === ti && !before;
   const label = y.ph === 'mock' ? `<span class="badge">mock ${(y.mk || {}).id || ''}</span>` : (y.ph === 'exam' ? '<span class="badge">imtihon</span>' : (y.ph === 'half' ? '<span class="badge navy">yarim mock</span>' : (y.ph === 'light' ? '<span class="badge navy">yengil</span>' : (y.ph === 'rest' ? '<span class="badge navy">dam</span>' : ''))));
   const mt = dayMet(d), stk = streakNow();
   let h = `<header class="hero"><div class="hrow"><div><span class="hd">${esc(y.wd)}, ${fmtDate(y.date)}${d !== ti ? ' · tanlangan kun' : ''}</span><span class="hn">${d}-kun${label}</span></div>
@@ -1226,11 +1313,28 @@ function renderToday(){
     ${d === ti && mt ? (mt.met ? '<div class="hneed">Bugungi kun zanjirga qo‘shildi.</div>' : `<div class="hneed">Zanjir uchun bugun kamida ${mt.need} ta vazifa — yana ${mt.need - mt.n} ta.</div>`) : ''}` : ''}
     <div class="hnav"><button type="button" id="pv" aria-label="Oldingi kun" ${d <= 1 ? 'disabled' : ''}>${IC.left}</button>${d !== ti ? '<button type="button" id="tdy">Bugunga qaytish</button>' : ''}<button type="button" id="nx" aria-label="Keyingi kun" ${d >= ND ? 'disabled' : ''}>${IC.right}</button></div></header>
     <p class="focus">${esc(y.note)}</p>`;
-  h += matHtml(y);
+  let hero = '';
   if (nt) {
-    const info = (PS.done['d' + d] || {})[nt.id];
-    h += `<div class="now"><div class="eyebrow">${d === ti ? 'Hozir' : 'Navbatdagi'}</div><div class="tm">${esc(nt.tm)}${info && info.p !== undefined ? ` · natija ${info.p}%` : ''}</div><h3>${nt.h}</h3><div class="what">${nt.what}</div><div class="cta">${actBtns(nt, true)}</div></div>`;
-  } else if (cnt) h += `<div class="now"><h3>Kunning hamma vazifasi bajarildi</h3><div class="what">Lug‘at yoki Xatolarim bilan qo‘shimcha ishlashingiz mumkin.</div></div>`;
+    const info = (PS.done['d' + d] || {})[nt.id], w = live ? taskWindow(nt) : null;
+    const top = `<div class="eyebrow">${d === ti ? 'Hozir' : 'Navbatdagi'}</div>${w ? `<div class="hzcd" id="hzCd" data-w="${w[0]},${w[1]}"></div>` : ''}<div class="tm">${esc(nt.tm)}${info && info.p !== undefined ? ` · natija ${info.p}%` : ''}</div><h3>${nt.h}</h3>`;
+    const what = `<div class="what">${nt.what}</div>`, cta = `<div class="cta">${actBtns(nt, true)}</div>`;
+    hero = `<div class="now${live ? ' hz' : ''}">${top}${live ? cta + what : what + cta}</div>`;   // «Hozir»da tugma izohdan oldin
+  } else if (cnt) hero = `<div class="now"><h3>Kunning hamma vazifasi bajarildi</h3><div class="what">Lug‘at yoki Xatolarim bilan qo‘shimcha ishlashingiz mumkin.</div></div>`;
+  if (live && cnt) {                               // kun chizig‘i, reja bajarilishi, oxirgi natija, qarz
+    const m = nowMin(), CL = L.filter(counted);
+    const cells = CL.map(t => { const dn = taskDone(d, t), w = taskWindow(t), c = dn ? 'ok' : (nt && t.id === nt.id ? 'cur' : (w && w[1] <= m ? 'miss' : 'fut'));
+      const lab = {ok:'bajarildi', cur:'hozir', miss:'qolib ketdi', fut:'keyin'}[c];
+      ACTS.push(() => { if (t.act[0]) { markStart(d, t.id); t.act[0][1](); } });
+      return `<button type="button" class="hzc ${c}" data-a="${ACTS.length - 1}" aria-label="${esc(hhmm(t.tm))} ${esc(tShortName(t))} — ${lab}"><i></i><b>${esc(hhmm(t.tm))}</b></button>`; }).join('');
+    const r = planRate(), q = debtList();
+    const res = CL.map(t => ({t, x:(PS.done['d' + d] || {})[t.id]})).filter(o => o.x && o.x.p !== undefined).pop();
+    const prev = res ? ((PS.done['d' + (d - 1)] || {})[res.t.id] || {}).p : undefined;
+    hero += `<div class="hzs" role="group" aria-label="Kun chizig‘i: ${done}/${cnt}">${cells}</div>
+      <p class="hzr"><b class="${r.p >= C2P ? 'good' : 'bad'}">${r.p}%</b> reja bajarilishi (${r.n}/${r.c}, 1-kundan beri) · C2 uchun kamida ${C2P}%</p>
+      ${res ? `<p class="hzr">Oxirgi natija: <b>${esc(tShortName(res.t))} ${res.x.p}%</b>${prev !== undefined ? ` (kecha ${prev}%)` : ''} · C2 uchun ≈ 83%</p>` : ''}`;
+    if (q.length) hero += `<section class="hzq"><h4>Qarz — ${q.length} ta · 21:15 da birinchi</h4>${q.map(o => { ACTS.push(() => { markStart(o.d, o.t.id); o.t.act[0][1](); }); return `<button type="button" class="hzqi" data-a="${ACTS.length - 1}"><span>${o.d < d ? 'Kecha' : 'Bugun'} · ${esc(hhmm(o.t.tm))}</span><b>${esc(tShortName(o.t))}</b></button>`; }).join('')}</section>`;
+    h += hero + matHtml(y);
+  } else h += matHtml(y) + hero;
   h += `<div class="sec">Kun rejasi</div><div class="tasks">`;
   L.forEach(t => {
     if (nt && t.id === nt.id && !t.diary) return;
@@ -1250,6 +1354,7 @@ function renderToday(){
   const td = $('#tdy'); if (td) td.onclick = () => { selDay = ti; renderToday(); };
   $('#minb').onclick = () => { PS.min = PS.min || {}; if (PS.min['d' + d]) delete PS.min['d' + d]; else PS.min['d' + d] = 1; savePlan(); renderToday(); };
   bindDiary(d);
+  clearInterval(hzT); hzT = null; if ($('#hzCd')) { hzTick(); hzT = setInterval(hzTick, 1000); }
   paintAr();
 }
 /* D7: 10 daqiqalik ravon yozuv (kundalik o‘rnida) */
@@ -2739,7 +2844,7 @@ function renderClaude(){
     const title = a[0] === 't4r' ? 'O‘qish matni — Tanal formatida' : t.h;
     const what = a[0] === 't4r' ? 'Claude matn va savollar tuzadi: vaqt bilan o‘qing, javob bering, yangi so‘zlarni lug‘atga qo‘shing. Sarf testi esa shu ilovada — «Bugun» bo‘limida.' : t.what;
     return `<section class="ccard ${CLF === a[1] ? 'focus' : ''} ${dn ? 'done' : ''}" id="cc_${a[0]}"><div class="tm">${esc(t.tm)}</div><h3>${title}</h3><div class="what">${what}</div>
-      <div class="cta"><button type="button" class="btn ${dn ? 'alt' : 'cta1'}" data-open="${a[1]}">${IC.ext}claude.ai’da ochish</button>
+      <div class="cta"><button type="button" class="btn ${dn ? 'alt' : 'cta1'}" data-open="${a[1]}" data-tid="${t.id}">${IC.ext}claude.ai’da ochish</button>
       <button type="button" class="btn alt" data-done="${a[0]}" aria-pressed="${dn}">${dn ? IC.check + 'Bajarildi' : 'Bajarildi deb belgilash'}</button></div></section>`;
   };
   $('#view').innerHTML = `<div class="hub-h"><h1>Claude bilan</h1><div class="tbar"></div><p>Bu vazifalarni claude.ai’dagi ilovada Claude tekshiradi va baholaydi. Tugatgach, shu yerda «Bajarildi»ni bosing — bot buni ko‘radi.</p></div>
@@ -2750,7 +2855,7 @@ function renderClaude(){
       <button type="button" class="li" data-cl="speak"><span class="t"><b>Erkin suhbat</b><span>Arabcha gaplashish — Claude xatolarni tuzatadi</span></span>${IC.ext}</button>
       <button type="button" class="li" data-cl=""><span class="t"><b>Savol berish</b><span>Qoida, xato yoki so‘z haqida</span></span>${IC.ext}</button>
     </div>`;
-  $('#view').querySelectorAll('[data-open]').forEach(b => b.onclick = () => openClaude(b.dataset.open));
+  $('#view').querySelectorAll('[data-open]').forEach(b => b.onclick = () => { if (b.dataset.tid) markStart(d, b.dataset.tid); openClaude(b.dataset.open); });
   $('#view').querySelectorAll('[data-cl]').forEach(b => b.onclick = () => openClaude(b.dataset.cl));
   $('#view').querySelectorAll('[data-done]').forEach(b => b.onclick = () => { const id = b.dataset.done; markTask(d, id, !isDoneRaw(d, id)); renderClaude(); });
   const ct = $('#clToday'); if (ct) ct.onclick = () => { selDay = ti; renderClaude(); };
@@ -2799,10 +2904,10 @@ async function miniRefresh(){
 function miniGo(go){
   const ti = todayIdx(); selDay = ti;
   if (go === 'min') { PS.min = PS.min || {}; PS.min['d' + ti] = 1; savePlan(); return setView('today'); }
-  if (go === 'now') { const nt = nowTask(ti, tasksFor(ti)); if (nt && nt.act[0]) return nt.act[0][1](); return setView('today'); }
+  if (go === 'now') { const nt = nowTask(ti, tasksFor(ti)); if (nt && nt.act[0]) { markStart(ti, nt.id); return nt.act[0][1](); } return setView('today'); }
   if (go.startsWith('t:')) {
     const t = tasksFor(ti).find(x => x.id === go.slice(2));
-    if (t) { const a = aiOf(t); if (a) { CLF = a[1]; return setView('claude'); } if (t.act[0] && !taskDone(ti, t)) return t.act[0][1](); }
+    if (t) { const a = aiOf(t); if (a) { CLF = a[1]; return setView('claude'); } if (t.act[0] && !taskDone(ti, t)) { markStart(ti, t.id); return t.act[0][1](); } }
     return setView('today');
   }
   if (['mashq', 'claude', 'natija', 'vocab', 'wrong', 'listen', 'quiz', 'plan'].includes(go)) return navTo(go);
