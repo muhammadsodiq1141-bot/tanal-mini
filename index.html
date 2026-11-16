@@ -77,6 +77,40 @@ h1.tt small{font-size:17px;font-weight:500;color:var(--muted)}
 .blk li{margin:4px 0}
 .rule{border-top:1px solid var(--line);padding-top:12px;margin-top:12px}
 .rule:first-of-type{border-top:0;margin-top:0;padding-top:0}
+/* batafsil dars */
+.blk.dars{display:flex;flex-direction:column;gap:10px}
+.blk.dars h4{margin:0}
+.blk.dars h5{margin:6px 0 0;font-size:14px}
+.blk.dars p{margin:0;line-height:1.6}
+.blk.dars .ar{font-size:1.14em;line-height:1.25}
+.dt td.arc{white-space:nowrap;text-align:left}
+.dt td.arw{text-align:right;min-width:120px}
+.dfx{display:flex;flex-direction:column;gap:8px}
+.dfr{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--paper)}
+.dfr i{font-style:normal;color:var(--muted)}
+.dfr .ar{font-size:1.3em}
+.dtw{overflow-x:auto;margin:0 -4px}
+.dt{width:100%;border-collapse:collapse;font-size:14px}
+.dt th{text-align:left;font-size:12px;color:var(--muted);font-weight:600;padding:6px 8px;border-bottom:2px solid var(--line)}
+.dt td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.5}
+.blk.dars.trap{border-color:color-mix(in srgb,var(--crimson) 40%,var(--line))}
+.blk.dars.trap h4{color:var(--crimson)}
+.dtr{display:flex;flex-direction:column;gap:3px;padding-top:8px;border-top:1px solid var(--line)}
+.dtr:first-of-type{border-top:0;padding-top:0}
+.dts{display:flex;gap:10px;align-items:flex-start}
+.dts p{font-size:14px;color:var(--muted);margin-top:2px}
+.dtn{flex:0 0 auto;min-width:44px;text-align:center;font-weight:700;font-size:13px;padding:3px 6px;border-radius:6px;background:var(--navy-soft);color:var(--navy)}
+.dal{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:4px}
+.dq{display:flex;flex-direction:column;gap:8px;padding-top:10px;border-top:1px solid var(--line)}
+.dq:first-of-type{border-top:0;padding-top:0}
+.dqs{text-align:right}
+.dqo{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.dqo .opt{min-height:44px;justify-content:center}
+.dqo .opt.ok{background:var(--ok-soft);border-color:var(--ok)}
+.dqo .opt.bad{background:var(--crimson-soft);border-color:var(--crimson)}
+.dqw{margin:0;font-size:14px}
+.dmore>summary{cursor:pointer;font-weight:600;padding:10px 0;color:var(--muted)}
+.dmore[open]>summary{margin-bottom:8px}
 .rule h5{margin:0 0 4px;font-size:15px;color:var(--navy)}
 .rule .body{max-width:72ch}
 ul.ex{list-style:none;padding:0;margin:8px 0 2px;display:flex;flex-direction:column;gap:2px;border-right:3px solid var(--navy);padding-right:12px}
@@ -126,6 +160,7 @@ select,input[type=number]{font:inherit;padding:8px 10px;border:1px solid var(--l
 .fb.self{border-color:var(--warn)}
 .fb strong{font-size:14px}
 .qfoot{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:0 20px 18px;flex-wrap:wrap}
+.linkbtn{background:none;border:0;color:var(--muted);text-decoration:underline;text-underline-offset:3px;font:inherit;font-size:13px;cursor:pointer;min-height:40px;padding:4px 0}
 .kbd{font-family:var(--f-mono);font-size:11px;color:var(--muted)}
 
 /* results */
@@ -549,6 +584,16 @@ select,input[type=number],input[type=text],textarea{border-radius:12px;border-co
 .now .what{color:var(--muted);font-size:14px}
 .now .cta .btn{min-height:48px}
 .now .cta .btn:first-child{flex:1 1 100%}
+/* batafsil dars — NOON UI */
+.blk.dars h4{color:#1A6A2A}
+.blk.dars h4::after{content:"";display:block;width:78px;height:6px;border-radius:3px;background:var(--lime);margin-top:8px}
+.dfr{background:#F4FAF3;border-radius:12px}
+.dt th{color:#3A6040}
+.dtn{background:var(--lime);color:#0A2A10;border-radius:8px}
+.blk.dars.trap{border-color:#E3B3B6}
+.blk.dars.trap h4{color:var(--crimson)}
+.blk.dars.trap h4::after{background:#C9545C}
+.dqo .opt{border-radius:12px}
 /* «Hozir» — NOON UI */
 .now.hz{border:1px solid var(--line);gap:10px}
 .hzcd b{font-family:var(--f-ui);font-weight:800;font-size:44px;color:#0D3A1A}
@@ -844,25 +889,64 @@ $('#idxToggle').addEventListener('click', () => $('#idx').classList.toggle('coll
 if (matchMedia('(max-width:820px)').matches) $('#idx').classList.add('collapsed');
 
 /* ---------- rules ---------- */
+/* batafsil dars: T[id].dars — bloklar (qisqa, formula, jadval, tuzoq, test, tekshir) */
+const AW = s => String(s ?? '').replace(/[؀-ۿ](?:[؀-ۿ\s]*[؀-ۿ])?/g, m => `<bdi dir="rtl" class="ar">${m}</bdi>`);   // faqat arabcha harf/harakat/، ؛ — qavs va nuqta tashqarida
+function darsHtml(t){
+  const B = t.dars; if (!B || !B.length) return '';
+  const A = AW;
+  const AR = s => `<bdi dir="rtl" class="ar">${esc(s)}</bdi>`;
+  return B.map((b, bi) => {
+    const note = b.p ? `<p class="note">${A(b.p)}</p>` : '';
+    if (b.k === 'qisqa') return `<section class="blk dars"><h4>${esc(b.h)}</h4>${b.p.map(p => `<p>${A(p)}</p>`).join('')}</section>`;
+    if (b.k === 'formula') return `<section class="blk dars"><h4>${esc(b.h)}</h4><div class="dfx">${b.ex.map(e => `<div class="dfr">${AR(e[0])}<i aria-hidden="true">→</i>${AR(e[1])}</div>`).join('')}</div>${note}</section>`;
+    if (b.k === 'jadval') return `<section class="blk dars"><h4>${esc(b.h)}</h4><div class="dtw"><table class="dt"><thead><tr>${b.cols.map(c => `<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${b.rows.map(r => `<tr>${r.map(c => `<td${/[A-Za-z]/.test(c) ? '' : (String(c).length <= 14 ? ' class="arc"' : ' class="arw"')}>${A(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>${note}</section>`;
+    if (b.k === 'tuzoq') return `<section class="blk dars trap"><h4>${esc(b.h)}</h4>${b.items.map((x, i) => `<div class="dtr"><b>${i + 1}. ${A(x.h)}</b><div>${A(x.b)}</div></div>`).join('')}</section>`;
+    if (b.k === 'test') return `<section class="blk dars"><h4>${esc(b.h)}</h4>${b.items.map(x => `<div class="dts"><span class="dtn">${esc(x.n)}</span><div>${AR(x.s)}<p>${A(x.uz)}</p></div></div>`).join('')}${b.algo ? `<h5>Yechish tartibi</h5><ol class="dal">${b.algo.map(a => `<li>${A(a)}</li>`).join('')}</ol>` : ''}${note}</section>`;
+    if (b.k === 'tekshir') return `<section class="blk dars"><h4>${esc(b.h)}</h4>${b.items.map((x, i) => `<div class="dq" data-dq="${bi}:${i}"><div class="dqs">${i + 1}. ${AR(x.s)}</div><div class="dqo">${x.o.map((o, j) => `<button type="button" class="opt" data-o="${j}">${AR(o)}</button>`).join('')}</div><p class="dqw" hidden></p></div>`).join('')}</section>`;
+    return '';
+  }).join('');
+}
+function bindDars(t){
+  $('#view').querySelectorAll('.dq').forEach(el => {
+    const [bi, i] = el.dataset.dq.split(':').map(Number), x = t.dars[bi].items[i];
+    el.querySelectorAll('.opt').forEach(b => b.onclick = () => {
+      if (el.dataset.done) return; el.dataset.done = 1;
+      const j = +b.dataset.o;
+      el.querySelectorAll('.opt').forEach(o => { const k = +o.dataset.o; o.disabled = true; if (k === x.c) o.classList.add('ok'); else if (k === j) o.classList.add('bad'); });
+      const w = el.querySelector('.dqw'); w.hidden = false; w.innerHTML = (j === x.c ? '<b>To‘g‘ri.</b> ' : '<b>Xato.</b> ') + AW(x.w);
+    });
+  });
+}
 function renderRules(){
-  const t = T[cur], b = BOOK[t.b];
-  let h = `<div><div class="eyebrow">${esc(b.uz)}</div>
+  const t = T[cur], b = BOOK[t.b], hasD = !!(t.dars && t.dars.length);
+  let h = `<div><div class="eyebrow">${esc(b.uz)}${t.kt ? ` · KT ${esc(t.kt)}-betlar` : ''}</div>
     <h1 class="tt"><span class="ar">${esc(t.title)}</span><small>${esc(t.uz)}</small></h1></div>`;
-  if (t.kitob.length) h += `<section class="blk book"><h4>Kitobda nima bor</h4><ul>${t.kitob.map(x=>`<li>${x}</li>`).join('')}</ul></section>`;
-  if (t.tuz.length) h += `<section class="blk fix"><h4>${t.new?'Izoh':'Kitobdagi xato va kamchiliklar'}</h4><ul>${t.tuz.map(x=>`<li>${x}</li>`).join('')}</ul></section>`;
-  if (t.add.length) h += `<section class="blk add"><h4>${t.new?'Qoidalar':'To‘ldirilgan qoidalar'}</h4>${t.add.map(r=>`<div class="rule"><h5>${esc(r.h)}</h5><div class="body">${r.b}</div></div>`).join('')}</section>`;
+  h += darsHtml(t);
+  let old = '';
+  if (t.kitob.length) old += `<section class="blk book"><h4>Kitobda nima bor</h4><ul>${t.kitob.map(x=>`<li>${x}</li>`).join('')}</ul></section>`;
+  if (t.tuz.length) old += `<section class="blk fix"><h4>${t.new?'Izoh':'Kitobdagi xato va kamchiliklar'}</h4><ul>${t.tuz.map(x=>`<li>${x}</li>`).join('')}</ul></section>`;
+  if (t.add.length) old += `<section class="blk add"><h4>${t.new?'Qoidalar':'To‘ldirilgan qoidalar'}</h4>${t.add.map(r=>`<div class="rule"><h5>${esc(r.h)}</h5><div class="body">${r.b}</div></div>`).join('')}</section>`;
+  h += hasD && old ? `<details class="dmore"><summary>Qo‘shimcha eslatmalar (eski qisqa qoidalar)</summary>${old}</details>` : old;
   const s = topicStats(t.id);
   h += `<div class="cta"><button class="btn red" id="goTopic" ${t.n?'':'disabled'}>Shu mavzuda mashq (${t.n} ta)</button>
         <span class="note">${s.done?`Yechilgan: ${s.done}, to‘g‘ri: ${s.ok}`:'Hali yechilmagan'}</span></div>`;
   $('#view').innerHTML = h;
+  if (hasD) bindDars(t);
+  paintAr();
   const g = $('#goTopic'); if (g) g.onclick = () => { setup.scope = 'topic'; setView('quiz'); };
 }
 
 /* ---------- practice ---------- */
 const setup = {scope:'topic', count:20, order:'rand', src:'all', topics:[], timer:0, task:null, label:'', list:null, mock:null, drill:false, est:false};
 let run = null, qTimer = null;
+/* «Savolda xato bor»: P.fl[i] = {at, h}; savol matni tuzatilsa (h o‘zgarsa) — belgi o‘z-o‘zidan bekor bo‘ladi */
+const qh = q => { const s = q.s + '|' + (q.x || '') + '|' + (q.o || []).join('|') + '|' + q.c + '|' + (q.a || ''); let h = 5381; for (let i = 0; i < s.length; i++) h = (h * 33 + s.charCodeAt(i)) | 0; return (h >>> 0).toString(36); };
+const flagged = q => { const f = q && P.fl && P.fl[q.i]; return !!f && f.h === qh(q); };
 function pool(){
-  if (setup.scope === 'list' && setup.list) return setup.list.map(i => D.q[i]).filter(Boolean);
+  if (setup.scope === 'list' && setup.list) return setup.list.map(i => D.q[i]).filter(q => q && !flagged(q));
+  return pool0().filter(q => !flagged(q));
+}
+function pool0(){
   let qs = D.q;
   if (setup.scope === 'topic') qs = qs.filter(q => q.t === cur);
   else if (setup.scope === 'book') qs = qs.filter(q => T[q.t].b === T[cur].b);
@@ -885,7 +969,7 @@ function drillWrong(n, task){ preset({scope:'wrong', count:n, timer:0, task, lab
 function topicsOfDay(d){ const y = DY(d); return y ? [...y.nahv, ...y.sarf, ...y.imla].filter(id => T[id] && T[id].n) : []; }
 function pickFrom(ids, n, used){
   if (n <= 0) return [];
-  const qs = shuffle(D.q.filter(q => ids.includes(q.t) && !used.has(q.i)));
+  const qs = shuffle(D.q.filter(q => ids.includes(q.t) && !used.has(q.i) && !flagged(q)));
   qs.sort((a, b) => (P.a[a.i] ? 1 : 0) - (P.a[b.i] ? 1 : 0) || (wDue(b.i) ? 1 : 0) - (wDue(a.i) ? 1 : 0));
   const out = qs.slice(0, n); out.forEach(q => used.add(q.i)); return out;
 }
@@ -968,6 +1052,11 @@ function sentenceHtml(q){
   return s;
 }
 const hasKey = q => q.c !== null && q.c !== undefined;
+function stemHtml(q){                               // kitobda tagiga chizilgan so‘z(lar) — q.uw
+  let s = esc(q.s);
+  (q.uw || []).forEach(w => { const e = esc(w), at = s.indexOf(e); if (at >= 0) s = s.slice(0, at) + '\u0001' + e + '\u0002' + s.slice(at + e.length); });
+  return s.replace(/\u0001/g, '<u>').replace(/\u0002/g, '</u>');
+}
 function renderQ(){
   clearInterval(qTimer);
   $('#shell').classList.add('running');
@@ -978,13 +1067,15 @@ function renderQ(){
   $('#view').innerHTML = `<div class="qcard" id="qc">
     <div class="prog big"><i style="width:${run.k / tot * 100}%"></i></div>
     <div class="qhead"><span class="qnum"><b>${run.k + 1}</b> / ${tot}</span><span class="ar" style="font-size:15px">${esc(t.title)}</span><span>${run.timer ? `<span class="timer" id="qt">${run.timer}</span> s · ` : ''}${src}${run.mock ? ' · sinov' : ''}</span></div>
-    <div class="qbody"><div class="stem ar">${esc(q.s)}</div>${q.x ? `<div class="sent ar">${sentenceHtml(q)}</div>` : ''}</div>
+    <div class="qbody"><div class="stem ar">${stemHtml(q)}</div>${q.x ? `<div class="sent ar">${sentenceHtml(q)}</div>` : ''}</div>
     ${opts.length ? `<div class="opts">${opts.map((o, i) => o ? `<button class="opt" data-i="${i}"><span class="k">${LET[i]}</span><span class="ar">${esc(o)}</span></button>` : '').join('')}</div>`
       : `<div class="qbody" style="padding-top:0"><input type="text" id="myans" dir="rtl" lang="ar" placeholder="Avval javobingizni yozing" aria-label="Mening javobim"></div><div class="qfoot"><button class="btn alt" id="reveal">Javobni ko‘rsatish</button></div>`}
     <div id="fbx"></div>
     <div class="qfoot sticky"><span class="kbd">${run.mock ? `${run.log.length} ta javob berildi` : `To‘g‘ri: ${run.right} · ${run.log.length} ta yechildi`}</span>
+      ${q.off ? '' : `<button type="button" class="linkbtn" id="flagQ">Savolda xato bor</button>`}
       <span class="cta"><button class="btn alt" id="quit">Tugatish</button><button class="btn" id="next" disabled>Keyingi</button></span></div>
   </div>`;
+  const fq = $('#flagQ'); if (fq) fq.onclick = () => flagQ(q, fq);
   $('#view').querySelectorAll('.opt').forEach(b => b.onclick = () => answer(+b.dataset.i));
   const rv = $('#reveal'); if (rv) rv.onclick = () => answer(-1);
   $('#next').onclick = next;
@@ -1088,10 +1179,17 @@ function answer(i){
   }
   const sx = $('#selfx'); if (sx) sx.oninput = () => { const w = $('#why'); if (w) w.textContent = sx.value.trim() ? 'Izohim to‘g‘rimi? — Claude' : 'Nega? — Claude izohi'; };
 }
+function flagQ(q, btn){
+  P.fl = P.fl || {}; P.fl[q.i] = {at:Date.now(), h:qh(q)}; delete P.w[q.i]; save();
+  run.flag = run.flag || new Set(); run.flag.add(q.i);
+  btn.outerHTML = '<span class="note">Belgilandi: bu savol ballga qo‘shilmaydi va tuzatilguncha testlarga tushmaydi.</span>';
+  if (!run.answered) { run.answered = true; clearInterval(qTimer); $('#view').querySelectorAll('.opt').forEach(b => b.disabled = true); $('#next').disabled = false; if (run.mock) setTimeout(next, 600); }
+}
 function next(){ if (run.k + 1 >= run.qs.length) return finish(); run.k++; renderQ(); window.scrollTo({top:0}); }
 function finish(){
   clearInterval(qTimer);
   $('#shell').classList.remove('running');
+  if (run.flag && run.flag.size) run.log = run.log.filter(x => !run.flag.has(x[0]));     // «xato bor» belgilanganlar ballga kirmaydi
   const n = run.log.length, r = run.log.filter(x => x[1]).length, pct = n ? Math.round(r / n * 100) : 0;
   const wrong = run.log.filter(x => !x[1]);
   if (run.task && n >= Math.min(run.qs.length, 8)) markTask(run.task[0], run.task[1], true, pct);
