@@ -1044,9 +1044,20 @@ function renderEstimate(){
   $('#view').querySelectorAll('[data-e]').forEach(b => b.onclick = () => { run.est = +b.dataset.e; renderQ(); });
   $('#noest').onclick = () => renderQ();
 }
+/* so‘zni butun so‘z sifatida topish: «لم» «المعلمان» ichidan emas, alohida so‘z sifatida (topilmasa — birinchi uchragan joy) */
+const AR_L = /[ء-يٱ-ۓ]/, AR_LH = /[ء-ْـٰ-ۓ]/;
+function findWord(s, e){
+  let at = s.indexOf(e), first = at;
+  while (at >= 0) {
+    const b = at > 0 ? s[at - 1] : '', a = s[at + e.length] || '';
+    if (!(b && AR_LH.test(b)) && !(a && AR_L.test(a))) return at;
+    at = s.indexOf(e, at + 1);
+  }
+  return first;
+}
 function sentenceHtml(q){
   let s = esc(q.x);
-  q.o.forEach((o, i) => { if (!o) return; const e = esc(o); const at = s.indexOf(e);
+  q.o.forEach((o, i) => { if (!o) return; const e = esc(o); const at = findWord(s, e);
     if (at >= 0) s = s.slice(0, at) + `\u0001${i}\u0002` + s.slice(at + e.length); });
   q.o.forEach((o, i) => { s = s.replace(`\u0001${i}\u0002`, `<u>${esc(o)}<sup>${LET[i]}</sup></u>`); });
   return s;
@@ -1054,7 +1065,7 @@ function sentenceHtml(q){
 const hasKey = q => q.c !== null && q.c !== undefined;
 function stemHtml(q){                               // kitobda tagiga chizilgan so‘z(lar) — q.uw
   let s = esc(q.s);
-  (q.uw || []).forEach(w => { const e = esc(w), at = s.indexOf(e); if (at >= 0) s = s.slice(0, at) + '\u0001' + e + '\u0002' + s.slice(at + e.length); });
+  (q.uw || []).forEach(w => { const e = esc(w), at = findWord(s, e); if (at >= 0) s = s.slice(0, at) + '\u0001' + e + '\u0002' + s.slice(at + e.length); });
   return s.replace(/\u0001/g, '<u>').replace(/\u0002/g, '</u>');
 }
 function renderQ(){
