@@ -135,6 +135,9 @@ select,input[type=number]{font:inherit;padding:8px 10px;border:1px solid var(--l
 
 /* question card */
 .qcard{background:var(--sheet);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+/* overflow:hidden kartani «aylantirish oynasi»ga aylantiradi — yopishqoq pastki panel karta ichida 66–70 px yuqoriga ko‘tarilib, D variantni yopardi (18.11) */
+@supports (overflow:clip){.qcard{overflow:clip}}
+@supports not (overflow:clip){.qfoot.sticky{position:static!important}}
 .qhead{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 12px;padding:10px 16px;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted);font-family:var(--f-mono)}
 .qhead b{color:var(--ink);font-family:var(--f-ui)}
 .prog{height:3px;background:var(--line)}
