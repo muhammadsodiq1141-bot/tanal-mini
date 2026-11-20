@@ -504,6 +504,84 @@ button.wi.hist:hover{border-color:var(--navy)}
 .mocksec{display:flex;flex-direction:column;gap:6px}
 .mocksec .row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--sheet)}
 .prep{font-family:var(--f-ar);font-size:30px;text-align:center;color:var(--crimson)}
+/* Ekspertlar (20.11) */
+.exav{position:relative;flex:none;display:inline-grid;place-items:center;border-radius:50%;background:var(--navy-soft);width:52px;height:52px}
+.exav img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}
+.exav b{font-size:20px;color:var(--navy)}
+.exav.s{width:34px;height:34px}.exav.s b{font-size:14px}
+.exav.l{width:84px;height:84px}.exav.l b{font-size:30px}
+.exav i{position:absolute;right:-3px;bottom:-3px;width:22px;height:22px;border-radius:50%;background:var(--ink);color:var(--paper);display:grid;place-items:center;border:2px solid var(--sheet)}
+.exav i .ico{width:12px;height:12px}
+.exav.l i{width:28px;height:28px}.exav.l i .ico{width:15px;height:15px}
+.exhk{background:var(--bar);color:var(--bar-fg);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.exwho{display:flex;gap:12px;align-items:center}
+.exwho b{display:block;font-size:16px}.exwho span{font-size:12.5px;opacity:.8}
+.exbig{display:flex;align-items:baseline;gap:8px}
+.exbig b{font-size:40px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.exbig span,.exgoal{font-size:13px;opacity:.85}
+.exbars{display:grid;gap:7px}
+.exbr{display:grid;grid-template-columns:96px minmax(0,1fr) 44px;align-items:center;gap:8px;font-size:13px}
+.exbr i{height:8px;border-radius:8px;background:color-mix(in srgb,currentColor 18%,transparent);position:relative;overflow:hidden}
+.exbr i em{position:absolute;inset:0 auto 0 0;border-radius:8px;background:var(--ok)}
+.exbr i.w em{background:var(--warn)}
+.exbr i::after{content:"";position:absolute;top:0;bottom:0;left:83.3%;width:2px;background:currentColor;opacity:.55}
+.exbr b{text-align:right;font-variant-numeric:tabular-nums}
+.exsay{background:color-mix(in srgb,currentColor 9%,transparent);border-radius:10px;padding:10px 12px;font-size:14px;line-height:1.55}
+.exok{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:14px}
+.exok .ico,.exhk .btn .ico{width:16px;height:16px}
+.exhk .btn.alt{color:inherit;border-color:color-mix(in srgb,currentColor 35%,transparent)}
+.exhk .btn.red{background:var(--bar-fg);color:var(--bar);display:inline-flex;align-items:center;gap:6px}
+.exlist{display:flex;flex-direction:column;gap:10px}
+.excard{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;text-align:left;background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:12px;cursor:pointer;width:100%}
+.excard .t{display:flex;flex-direction:column;gap:2px;min-width:0}
+.excard .t b{font-size:16px}.excard .t b small{font-weight:500;color:var(--muted);font-size:13px}
+.excard .t>span{font-size:13.5px;color:var(--muted)}
+.excard>.ico{color:var(--muted)}
+.exmeta{display:flex;flex-wrap:wrap;gap:6px;margin-top:5px}
+.exmeta .chip{cursor:default;padding:2px 8px;font-size:11.5px;font-weight:600;display:inline-flex;gap:4px;align-items:center;min-height:0}
+.exmeta .chip .ico{width:12px;height:12px}
+.exmeta .chip.warn{color:var(--warn);border-color:var(--warn)}
+.exmeta .chip.new{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.exhero{display:flex;gap:16px;align-items:center}
+.exhero .note{margin:4px 0 0}
+.exback{align-self:flex-start}
+.exbub{background:var(--sheet);border:1px solid var(--line);border-radius:4px 14px 14px 14px;padding:12px 14px;font-size:15px;line-height:1.6;display:flex;flex-direction:column;gap:10px}
+.blk h3{margin:0;font-size:15px;display:flex;align-items:center;gap:8px}
+.blk h3 .ico{width:17px;height:17px;color:var(--navy)}
+.exch{display:flex;align-items:flex-end;gap:8px;height:110px;margin-top:12px;position:relative;padding-bottom:18px}
+.exch .c2{position:absolute;left:0;right:0;border-top:2px dashed var(--ok);font-size:10.5px;color:var(--ok);font-weight:700}
+.exch .c2 span{position:absolute;right:0;top:-17px}
+.exch .b{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;max-width:44px}
+.exch .b em{width:100%;border-radius:6px 6px 2px 2px;background:var(--navy-soft);border:1px solid var(--navy)}
+.exch .b:last-child em{background:var(--navy)}
+.exch .b u{position:absolute;bottom:0;text-decoration:none;font-size:11px;color:var(--muted)}
+.extrap{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line);font-size:14px}
+.extrap:first-of-type{border-top:0}
+.extrap .n{width:28px;height:28px;border-radius:8px;background:var(--crimson-soft);color:var(--crimson);font-weight:700;font-size:13px;display:grid;place-items:center}
+.extrap small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}
+.extrap .tb{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.extrap .tb .btn{padding:6px 10px;font-size:13px;min-height:36px}
+.exmas{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.55}
+.exasst{display:flex;gap:10px;align-items:center;font-size:13px;color:var(--muted);margin:8px 0 2px}
+.exasst b{color:var(--ink)}
+.exf{display:flex;flex-direction:column;gap:4px;padding:11px 0;border-top:1px solid var(--line)}
+.exasst+.exf{border-top:0}
+.exf .src{font-size:11.5px;font-weight:700;color:var(--muted);display:flex;gap:6px;align-items:center;text-transform:uppercase;letter-spacing:.05em}
+.exf .src .ico{width:13px;height:13px}
+.exf .nw{background:var(--crimson);color:#fff;border-radius:999px;padding:1px 7px;font-size:10px;letter-spacing:0;text-transform:none}
+.exf b{font-size:14.5px;line-height:1.45}
+.exf p{margin:0;font-size:13.5px;line-height:1.5}
+.exf .st{font-size:13px;color:var(--ok);display:flex;gap:6px;align-items:flex-start;line-height:1.45}
+.exf .st .ico{width:14px;height:14px;flex:none;margin-top:3px}
+.exf a{font-size:13px;font-weight:600;color:var(--navy);display:inline-flex;gap:5px;align-items:center;text-decoration:none}
+.exf a .ico{width:13px;height:13px}
+.exmq{border-left:3px solid var(--ok);padding:6px 0 6px 12px;display:flex;flex-direction:column;gap:2px}
+.exmq small{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.exmq b.ar{font-size:1.45em;font-weight:700;text-align:right}
+.exmq span{font-size:14px;color:var(--muted);direction:rtl;text-align:right}
+.exaskb{display:flex;gap:10px;align-items:center;width:100%;background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;color:var(--muted);font-size:15px;text-align:left}
+.exaskb .ico{width:20px;height:20px;color:var(--navy)}
+.linkb{background:none;border:0;padding:0;color:var(--navy);font-weight:600;cursor:pointer;text-decoration:underline}
 </style>
 
 <style>
@@ -713,6 +791,47 @@ select,input[type=number],input[type=text],textarea{border-radius:12px;border-co
 .gcard p{margin:0;color:var(--muted);font-size:14px}
 .sync{position:fixed;left:-9999px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* Ekspertlar (20.11) — NOON UI: kengash kartasi to‘q gradient (95/5), qolgani oq kartalar */
+.exhead .tt span{font-weight:800}
+.exhk{background:var(--g-green);color:#F2FBEF;border-radius:16px;padding:16px;position:relative;overflow:hidden;box-shadow:var(--shadow)}
+.exhk::after{content:"";position:absolute;inset:0;background:linear-gradient(120deg,rgba(255,255,255,.10),transparent 40%);pointer-events:none}
+.exhk>*{position:relative;z-index:1}
+.exhk .exwho span,.exhk .exgoal,.exhk .exbig span{color:#BFE6B8;opacity:1}
+.exbig b{font-weight:800}
+.exbr i{background:rgba(13,58,26,.12)}
+.exhk .exbr i{background:rgba(255,255,255,.16)}
+.exbr i em{background:var(--lime)}
+.exbr i.w em{background:#F2B544}
+.exhk .exsay{background:rgba(255,255,255,.08)}
+.exhk .btn.red{background:var(--lime);color:#0A2A10;font-weight:800}
+.exhk .btn.alt{background:transparent;color:#F2FBEF;border-color:rgba(255,255,255,.35)}
+.exhk .exok{color:#6AEF5A}
+.exav{background:#D7F1D2}
+.exav i{background:var(--lime);color:#0A2A10;border-color:#fff}
+.exhk .exav i{border-color:#0D3A1A}
+.excard{border-radius:16px;box-shadow:var(--shadow);border-color:var(--line)}
+.excard .t b small{color:var(--soft,#5A8060)}
+.excard>.ico{color:#9FC59A}
+.exmeta .chip{background:#EEF7EC;color:#1A6A2A;border:0}
+.exmeta .chip.new{background:#0D3A1A;color:#6AEF5A}
+.exmeta .chip.warn{background:#FFF4DC;color:#8A6100;border:0}
+.exbub{border-radius:4px 16px 16px 16px;box-shadow:var(--shadow)}
+.exbub .btn.red{background:var(--lime);color:#0A2A10;font-weight:800}
+.exbub .cta .btn{flex:1 1 auto}
+.exch .b em{background:#BFE6B8;border:0}
+.exch .b:last-child em{background:var(--lime)}
+.exch .c2{border-color:#2EB82E;color:#1A6A2A}
+.blk h3 .ico{color:#1A6A2A}
+.extrap .n{background:#FBECEC;color:#A3262F}
+.exf .nw{background:#0D3A1A;color:#6AEF5A}
+.exf .st{color:#1A6A2A}
+.exf a{color:#1A6A2A}
+.exaskb{border-radius:14px;box-shadow:var(--shadow)}
+.exaskb .ico{color:#0A2A10;background:var(--lime);border-radius:10px;padding:8px;width:36px;height:36px;box-sizing:border-box}
+.ask{z-index:20}
+.ask .bub.cl{background:#EEF7EC}
+.exmq{border-left-color:#2EB82E;background:#F3FAF2;border-radius:0 12px 12px 0;padding:8px 12px}
 </style>
 </head>
 <body>
@@ -720,7 +839,7 @@ select,input[type=number],input[type=text],textarea{border-radius:12px;border-co
 <nav class="bnav" id="bnav" aria-label="Asosiy bo‘limlar" hidden>
   <button type="button" data-b="today"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Bugun</span></button>
   <button type="button" data-b="mashq"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg><span>Mashq</span></button>
-  <button type="button" data-b="claude"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg><span>Claude</span></button>
+  <button type="button" data-b="ekspert"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Ekspertlar</span></button>
   <button type="button" data-b="natija"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg><span>Natija</span></button>
 </nav>
 <div class="sheet" id="sheet" hidden><div class="sheet-in" id="sheetIn" role="menu"></div></div>
@@ -734,7 +853,7 @@ select,input[type=number],input[type=text],textarea{border-radius:12px;border-co
 </div>
 
 <aside class="ask" id="ask" hidden aria-label="Claude’dan so‘rash">
-  <div class="ask-h"><b>Claude’dan so‘rash<small id="askCtx"></small></b><button class="btn alt sm" id="askNew" type="button">Yangi suhbat</button><button class="iconbtn" id="askClose" type="button" aria-label="Yopish"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>
+  <div class="ask-h"><b><span id="askTtl">Claude’dan so‘rash</span><small id="askCtx"></small></b><button class="btn alt sm" id="askNew" type="button">Yangi suhbat</button><button class="iconbtn" id="askClose" type="button" aria-label="Yopish"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>
   <div class="ask-b" id="askBody"></div>
   <div class="ask-f"><textarea id="askIn" rows="2" dir="auto" placeholder="Savolingizni yozing — o‘zbekcha yoki arabcha" aria-label="Savolingiz"></textarea>
     <div class="cta"><button class="btn red sm" id="askSend" type="button">Yuborish</button><button class="btn alt sm" id="askStop" type="button" hidden>To‘xtatish</button></div></div>
@@ -842,6 +961,9 @@ function sampleErr(e){
   if (c === 'refused') return 'Claude bu so‘rovni bajarmadi. So‘rovni boshqacha ifodalab ko‘ring.';
   if (c === 'sampling_disabled' || c === 'capability_disabled') return 'Bu hisobda Claude funksiyalari o‘chirilgan.';
   if (c === 'cancelled') return 'To‘xtatildi.';
+  if (c === 'nokey') return 'Telegram ichida suhbat uchun API kaliti hali ulanmagan. Hozircha claude.ai’dagi ilovada so‘rang.';
+  if (c === 'limit') return 'Bugungi savollar chegarasi tugadi. Ertaga yoki claude.ai’dagi ilovada davom eting.';
+  if (c === 'api') return 'Server javob bermadi. Birozdan keyin qayta yuboring yoki claude.ai’da so‘rang.';
   return 'Claude javob bermadi — internet yoki xizmatda uzilish. Birozdan keyin qayta bosing.';
 }
 /* E6: kutilayotgan Claude so‘rovlari — o‘tgan vaqt, ikki marta yuborishdan himoya */
@@ -879,6 +1001,7 @@ function record(q, right){
   const first = !P.a[q.i];
   const r = P.a[q.i] || [0,0]; r[0]++; if (right) r[1]++; P.a[q.i] = r;
   if (first) { P.f = P.f || {}; P.f[q.i] = right ? 1 : 0; }      // D8: birinchi urinish natijasi
+  { const dn = dayNum(); P.dh = P.dh || {}; const h = P.dh[dn] || [0, 0]; h[0]++; if (right) h[1]++; P.dh[dn] = h; }   // 20.11: kunlik aniqlik (Zayd grafigi)
   const now = Date.now(), w = wget(q.i);
   let counted = true;
   if (right) {
@@ -1363,7 +1486,9 @@ const wTitles = y => (y.wl || []).map(w => `<span class="arline">${esc(w.t)}</sp
 const SPLAB = sp => sp ? (sp.b === 'sm' ? 'SM ' : 'S100 ') + sp.n : '';
 function tasksFor(d){                  // vaqt bo‘yicha tartiblangan
   const tm0 = t => { const m = String(t.tm).match(/(\d{2}):(\d{2})/); return m ? +m[1] * 60 + +m[2] : 1e4; };
-  return tasksFor0(d).map((t, i) => [t, i]).sort((a, b) => tm0(a[0]) - tm0(b[0]) || a[1] - b[1]).map(x => x[0]);
+  const L = tasksFor0(d).map((t, i) => [t, i]).sort((a, b) => tm0(a[0]) - tm0(b[0]) || a[1] - b[1]).map(x => x[0]);
+  hkAdd(d, L);                          // Ustoz Hakim taklifi qabul qilingan bo‘lsa — kechki blokka +20 daqiqa
+  return L;
 }
 function tasksFor0(d){
   const y = DY(d), L = [], ph = y.ph || 'learn', m = y.mat || {};
@@ -2907,9 +3032,292 @@ function renderChat(){
   }
 }
 
+/* ---------- Ekspertlar (20.11): personajlar, prognoz, xonalar, yordamchilar lentasi ---------- */
+const EKS = C.ekspert || {ex:[]};
+const EXL = EKS.ex || [], EXS = {}; EXL.forEach(e => { EXS[e.id] = e; });
+const SEKS = ['gram', 'read', 'lis', 'speak', 'write'];
+const SEK = {gram:'Grammatika', read:'O‘qish', lis:'Eshitish', speak:'Gapirish', write:'Yozish', hokim:'Umumiy'};
+const exOf = s => EXL.find(e => e.sek === s) || null;
+const TEX = {t1:'gram', n2:'gram', x2:'gram', x3:'gram', t3:'write', tK:'write', n3:'write', t4:'read', k0:'read', n1:'read', s1:'speak', tL:'lis', t2:'lis', t5:'hokim', M:'hokim', m4:'hokim', x1:'hokim', x4:'hokim'};
+const C2T = 125, PRIOR = {gram:20, read:20, lis:21, speak:20, write:19};   // ma’lumot yo‘q bo‘limlar uchun boshlang‘ich taxmin (milliy sertifikat C1)
+let EXID = 'hakim', FEED = EKS.feed || null;
+const EXIC = {
+  compass:'<circle cx="12" cy="12" r="10"/><path d="m16.24 7.76-2.12 6.36-6.36 2.12 2.12-6.36 6.36-2.12z"/>',
+  spell:'<path d="m6 16 6-12 6 12"/><path d="M8 12h8"/><path d="m16 20 2 2 4-4"/>',
+  book:'<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+  head:'<path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/>',
+  mic:'<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/>',
+  pen:'<path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/>',
+  search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  chev:'<path d="m9 18 6-6-6-6"/>',
+  check:'<path d="M20 6 9 17l-5-5"/>',
+  alert:'<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+  chart:'<path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="m19 9-5 5-4-4-3 3"/>',
+  send:'<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>',
+  yt:'<path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"/><path d="m10 15 5-3-5-3z"/>',
+  ig:'<rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>',
+  fb:'<path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>',
+  globe:'<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>',
+  file:'<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M16 13H8"/><path d="M16 17H8"/>',
+  msg:'<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>',
+  bulb:'<path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/>',
+  ext:'<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>'
+};
+const exIco = k => `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${EXIC[k] || ''}</svg>`;
+const SEKIC = {hokim:'compass', gram:'spell', read:'book', lis:'head', speak:'mic', write:'pen'};
+function exAv(id, size, badge){
+  const e = EXS[id], src = (EKS.rasm || {})[id], nm = e ? e.ism : (EXL.map(x => x.yord).find(y => y && y.id === id) || {}).ism || '?';
+  return `<span class="exav ${size || 'm'}">${src ? `<img src="${src}" alt="" loading="lazy">` : `<b>${esc(nm.replace(/^Ustoz\s+/, '').slice(0, 1))}</b>`}${badge && e ? `<i>${exIco(SEKIC[e.sek])}</i>` : ''}</span>`;
+}
+const dOfTs = ts => Math.min(ND, Math.max(1, Math.floor((new Date(ts).setHours(0,0,0,0) - START) / 864e5) + 1));
+const dOfDn = dn => dn - dnOf(DAYS[0].date) + 1;
+const pct = v => Math.round(v * 100);
+/* har bo‘lim natijalari: mashq (ulush 0–1, kun bilan) va mock (/30) */
+function sekData(){
+  const r = {gram:[], read:[], lis:[], speak:[], write:[]}, mk = {gram:[], read:[], lis:[], speak:[], write:[]};
+  Object.keys(P.dh || {}).map(Number).sort((a, b) => a - b).forEach(dn => { const h = P.dh[dn]; if (h && h[0] >= 5) r.gram.push({d:dOfDn(dn), v:h[1] / h[0], n:h[0]}); });
+  if (!r.gram.length) { const fv = Object.values(P.f || {}); if (fv.length >= 10) r.gram.push({d:todayIdx(), v:fv.filter(Boolean).length / fv.length, n:fv.length}); }
+  DAYS.forEach(y => {
+    const rd = dayDoc('r' + pad2(y.d));
+    if (rd && rd.sub && rd.p) { const tot = readTexts(rd.p).reduce((a, t) => a + t.q.length, 0); if (tot) r.read.push({d:y.d, v:(+rd.score || 0) / tot}); }
+    wParts(y.d).forEach(p => { const e = dayDoc(p.key); if (e && e.fb && e.fb.tanal !== undefined) r.write.push({d:y.d, v:Math.min(1, (+e.fb.tanal || 0) / (e.fb.of || 15))}); });
+    const m = dayDoc('m' + pad2(y.d)); (m && m.ex || []).forEach(s => { if (s.score !== null && s.score !== undefined) r.speak.push({d:y.d, v:Math.min(1, s.score / (s.of || 25))}); });
+    if (y.ph === 'mock') { const ms = mockScore(mockDoc(y.d)).s; SEKS.forEach(k => { if (ms[k] !== null && ms[k] !== undefined) mk[k].push({d:y.d, v:+ms[k]}); }); }
+  });
+  (MED.read || []).forEach(x => { const rr = dayDoc('rx' + x.id.toLowerCase()); if (rr && rr.sub && rr.n) r.read.push({d:rr.at ? dOfTs(rr.at) : todayIdx(), v:rr.score / rr.n}); });
+  const ro = dayDoc('roff'); if (ro && ro.sub && ro.p) { const tot = readTexts(ro.p).reduce((a, t) => a + t.q.length, 0); if (tot) r.read.push({d:ro.at ? dOfTs(ro.at) : todayIdx(), v:(+ro.score || 0) / tot}); }
+  Object.values(PS.lis || {}).forEach(x => { if (x && x.of) r.lis.push({d:x.at ? dOfTs(x.at) : todayIdx(), v:x.score / x.of}); });
+  SEKS.forEach(k => r[k].sort((a, b) => a.d - b.d));
+  return {r, mk};
+}
+/* Ustoz Hakim prognozi: mock 60 % + so‘nggi 5 mashq 40 %; ma’lumot bo‘lmasa — boshlang‘ich taxmin */
+function prognoz(){
+  const {r, mk} = sekData(), s = {};
+  SEKS.forEach(k => {
+    const pr = r[k].slice(-5), m = mk[k][mk[k].length - 1];
+    const pv = pr.length ? pr.reduce((a, x) => a + x.v, 0) / pr.length * 30 : null;
+    let v, src;
+    if (m && pv !== null) { v = 0.6 * m.v + 0.4 * pv; src = 'mock + mashq'; }
+    else if (m) { v = m.v; src = 'mock'; }
+    else if (pv !== null) { v = pv; src = 'mashq (' + r[k].length + ')'; }
+    else { v = PRIOR[k]; src = 'boshlang‘ich taxmin'; }
+    s[k] = {v:Math.round(Math.max(0, Math.min(30, v))), src, n:r[k].length, m:mk[k].length, h:r[k]};
+  });
+  const total = SEKS.reduce((a, k) => a + s[k].v, 0);
+  const nm = Math.max(...SEKS.map(k => s[k].m)), nd = SEKS.filter(k => s[k].n >= 3).length;
+  const conf = nm >= 2 && nd >= 4 ? 'yuqori' : (nm >= 1 || nd >= 3 ? 'o‘rta' : 'past');
+  const weak = SEKS.slice().sort((a, b) => s[a].v - s[b].v || s[a].n - s[b].n)[0];
+  return {s, total, conf, weak, nm};
+}
+function pgSnap(pg){ PS.pg = PS.pg || {}; const k = 'd' + todayIdx(), o = PS.pg[k]; if (!o || o[0] !== pg.total || o[1] !== pg.weak) { PS.pg[k] = [pg.total, pg.weak]; savePlan(); } }
+function pgPrev(){ const ti = todayIdx(); for (let k = ti - 1; k >= 1; k--) { const o = (PS.pg || {})['d' + k]; if (o) return {d:k, t:o[0]}; } return null; }
+function trapsGram(n){ const c = {}; D.q.forEach(q => { if (P.w[q.i] && !flagged(q)) c[q.t] = (c[q.t] || 0) + 1; }); return Object.keys(c).map(id => ({id, n:c[id]})).sort((a, b) => b.n - a.n).slice(0, n || 3); }
+function errTop(sek, n){
+  const c = {}, add = e => { const r = e.r || KIND[e.k] || e.k || 'boshqa'; c[r] = c[r] || {r, n:0, ex:null}; c[r].n++; c[r].ex = e; };
+  DAYS.forEach(y => { if (sek === 'write') wParts(y.d).forEach(p => { const doc = dayDoc(p.key); (doc && doc.fb && doc.fb.errors || []).forEach(add); });
+    else { const m = dayDoc('m' + pad2(y.d)); (m && m.ex || []).forEach(s => (s.fb && s.fb.items || []).forEach(it => (it.errors || []).forEach(add))); } });
+  return Object.values(c).sort((a, b) => b.n - a.n).slice(0, n || 3);
+}
+function weakTopics(n){ return learnedTopics(todayIdx()).map(id => ({id, s:topicStats(id)})).filter(x => x.s.done >= 3).sort((a, b) => a.s.ok / a.s.done - b.s.ok / b.s.done).slice(0, n || 3).map(x => x.id); }
+/* bo‘lim bo‘yicha qo‘shimcha mashq (Hakim «+20 daqiqa» va ekspert xonasidagi tugmalar) */
+const SEKX = {
+  gram:() => { const w = weakTopics(3); if (w.length) preset({list:quotaList(w, 20), timer:60, label:'Hakim: zaif mavzular'}); else drillWrong(20, null); },
+  read:() => { readDay = todayIdx(); readOff = 'tm'; setView('read'); },
+  lis:() => { listenDay = todayIdx(); const s = lisNext(); if (s) lisStart(s); setView('listen'); },
+  speak:() => spOpen(todayIdx(), 'exam'),
+  write:() => { writeDay = todayIdx(); wPart = 0; setView('write'); }
+};
+const SEKGO = {
+  gram:[['Xatolarim', () => drillWrong(20, null)], ['Zaif mavzular (20)', () => SEKX.gram()], ['Mavzu tanlab test', () => navTo('quiz')], ['Qoidalar', () => navTo('rules')]],
+  read:[['O‘qish taymeri', () => SEKX.read()], ['O‘qish matni', () => navTo('read')], ['Lug‘at', () => navTo('vocab')]],
+  lis:[['Navbatdagi to‘plam', () => SEKX.lis()], ['Hamma to‘plamlar', () => navTo('listen')], ['Maqol kartalari', () => navTo('vocab')]],
+  speak:[['Gapirish: 6 savol', () => SEKX.speak()], ['Erkin suhbat', () => spOpen(todayIdx(), 'chat')]],
+  write:[['Yozish', () => SEKX.write()], ['Terish testi', () => navTo('typing')]]
+};
+function hkAdd(d, L){
+  const s = (PS.hk || {})['d' + d], e = s && exOf(s), t = e && L.find(x => x.id === 't5'); if (!t) return;
+  t.act = [['+20 daq: ' + SEK[s].toLowerCase() + ' (' + e.ism + ')', SEKX[s]], ...t.act];
+  t.what += ` Ustoz Hakim: bugun +20 daqiqa ${SEK[s].toLowerCase()} — ${e.ism} bilan.`;
+}
+/* yordamchilar lentasi: {last, next, items:[{id, sek, src, t, x, h, url, at}]} */
+const FSRC = {telegram:['send', 'Telegram'], youtube:['yt', 'YouTube'], instagram:['ig', 'Instagram'], facebook:['fb', 'Facebook'], sayt:['globe', 'Sayt'], rasmiy:['file', 'Rasmiy sayt']};
+const feedItems = sek => ((FEED && FEED.items) || []).filter(x => x && x.sek === sek).sort((a, b) => String(b.at || '').localeCompare(String(a.at || '')));
+const feedUnseen = sek => feedItems(sek).filter(x => !(PS.fs || {})[x.id]).length;
+const fdate = s => { const m = String(s || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? `${+m[3]}.${m[2]}` : esc(s || ''); };
+function feedSeen(sek){ const L = feedItems(sek); if (!L.some(x => !(PS.fs || {})[x.id])) return; PS.fs = PS.fs || {}; L.forEach(x => { PS.fs[x.id] = 1; }); savePlan(); }
+function feedHtml(e){
+  const ye = e.yord, L = feedItems(e.sek).slice(0, 6), seen = PS.fs || {};
+  const meta = FEED && FEED.last ? `Oxirgi qidiruv: ${fdate(FEED.last)}${FEED.next ? `, keyingisi: ${fdate(FEED.next)}` : ''}.` : 'Birinchi qidiruv hali bo‘lmagan.';
+  const who = ye ? `<div class="exasst">${exAv(ye.id, 's')}<span><b>${esc(ye.ism)}</b> — ${esc(e.ism)}ning yordamchisi: Tanal yangiliklari va materiallarini qidiradi, ${esc(e.ism)} tekshirgach shu yerga qo‘yadi. ${meta}</span></div>`
+    : `<div class="exasst"><span>Yordamchilar topgan umumiy yangiliklar: sana, format, ro‘yxatdan o‘tish. ${meta}</span></div>`;
+  const item = x => { const s = FSRC[x.src] || ['globe', x.src || 'Manba'], ok = /^https:\/\//.test(x.url || '');
+    return `<div class="exf${seen[x.id] ? '' : ' new'}"><div class="src">${exIco(s[0])}${esc(s[1])}${x.at ? ' · ' + fdate(x.at) : ''}${seen[x.id] ? '' : '<span class="nw">yangi</span>'}</div><b>${AW(esc(x.t))}</b>${x.x ? `<p>${AW(esc(x.x))}</p>` : ''}${x.h ? `<div class="st">${exIco('check')}<span>${AW(esc(x.h))}</span></div>` : ''}${ok ? `<a href="${esc(x.url)}" target="_blank" rel="noopener" data-url="${esc(x.url)}">${exIco('ext')}Manbani ochish</a>` : ''}</div>`; };
+  return `<section class="blk exfeed"><h3>${exIco('search')}${ye ? esc(ye.ism) + ' topdi' : 'Yangiliklar'}</h3>${who}${L.length ? L.map(item).join('') : '<p class="note" style="margin:8px 0 0">Hozircha yangi material yo‘q.</p>'}</section>`;
+}
+/* ekspertning bugungi gapi — «jonli»: vaqt, kechagi kun, navbatdagi vazifa, natija o‘zgarishi, tanaffus (gaplar data/ekspert.json → gap) */
+const UNAME = (() => { try { const W = window.Telegram && window.Telegram.WebApp, u = W && W.initDataUnsafe && W.initDataUnsafe.user; return u && u.first_name ? String(u.first_name).slice(0, 24) : ''; } catch(e) { return ''; } })();
+const gcap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+const glc = s => s ? s.charAt(0).toLowerCase() + s.slice(1) : s;
+function gpick(e, k, salt){ const a = (e.gap || {})[k]; if (!a || !a.length) return ''; return a[(todayIdx() * 7 + Math.floor(new Date().getHours() / 3) + (salt || 0) + e.id.length) % a.length]; }
+const gfill = (s, o) => gcap(String(s || '').replace(/\{,ism\}/g, UNAME ? ', ' + UNAME : '').replace(/\{(\w+)\}/g, (m, k) => o && o[k] !== undefined ? o[k] : m));
+const tod = () => { const h = new Date().getHours(); return h < 11 ? 'm' : (h < 17 ? 'd' : (h < 21 ? 'e' : 'n')); };
+function yStat(sek){ const d = todayIdx() - 1; if (d < 1) return null; const L = tasksFor(d).filter(t => (sek === 'hokim' ? true : TEX[t.id] === sek) && t.act.length); if (!L.length) return null; return {n:L.filter(t => taskDone(d, t)).length, k:L.length}; }
+function exToday(e){
+  const d = todayIdx(), now = nowMin(), L = tasksFor(d).filter(t => TEX[t.id] === e.sek && (t.act.length || t.diary)), open = L.filter(t => !taskDone(d, t));
+  const h = e.sek === 'hokim' ? [] : (sekData().r[e.sek] || []), last = h[h.length - 1], prev = h[h.length - 2];
+  const S = [gfill(gpick(e, tod()))];
+  const y = yStat(e.sek); if (y && y.n === y.k) S.push(gfill(gpick(e, 'yOk', 1))); else if (y && y.n === 0) S.push(gfill(gpick(e, 'yBad', 1)));
+  const nx = open.map(t => ({t, w:taskWindow(t)})).sort((a, b) => (a.w ? a.w[0] : 1e4) - (b.w ? b.w[0] : 1e4));
+  const cur = nx.find(x => x.w && x.w[0] <= now && now < x.w[1]), up = nx.find(x => x.w && x.w[0] > now), lt = nx.find(x => x.w && x.w[1] <= now);
+  const nm = x => glc(tShortName(x.t));
+  let line;
+  if (!L.length) { S.push(gfill(gpick(e, 'none', 2))); line = 'Bugun rejada yo‘q — qo‘shimcha mashq'; }
+  else if (!open.length) { S.push(gfill(gpick(e, 'done', 2))); line = 'Bugungi vazifalar bajarildi'; }
+  else {
+    if (lt) S.push(gfill(gpick(e, 'late', 2), {t:nm(lt), hm:hhmm(lt.t.tm)}));
+    if (cur) S.push(gfill(gpick(e, 'now', 3), {t:nm(cur), hm:hhmm(cur.t.tm)}));
+    else if (up) S.push(up.w[0] - now <= 120 ? gfill(gpick(e, 'up', 3), {t:nm(up), hm:hhmm(up.t.tm), m:up.w[0] - now}) : `Keyingi uchrashuvimiz — ${hhmm(up.t.tm)} da: ${nm(up)}.`);
+    line = cur ? `Hozir: ${nm(cur)}` : (lt ? `${hhmm(lt.t.tm)} dan beri kutyapti: ${nm(lt)}` : (up ? `${hhmm(up.t.tm)} · ${nm(up)}` : `${nm(nx[0])}`));
+  }
+  if (last) { const dp = prev ? pct(last.v) - pct(prev.v) : 0; S.push(gfill(gpick(e, !prev || Math.abs(dp) < 3 ? 'tFlat' : (dp > 0 ? 'tUp' : 'tDown'), 4), {p:pct(last.v), d:Math.abs(dp)})); }
+  if (last && d - last.d >= 3) S.push(gfill(gpick(e, 'idle', 5), {n:d - last.d}));
+  if (e.sek === 'gram') { const tp = trapsGram(1)[0]; if (tp && T[tp.id] && tp.n >= 2) S.push(gfill(gpick(e, 'trap', 6), {mav:tname(tp.id), k:tp.n})); }
+  if (e.sek === 'write' || e.sek === 'speak') { const te = errTop(e.sek, 1)[0]; if (te && te.n >= 2) S.push(`Takrorlanayotgan xato turi: ${te.r} (${te.n} marta) — shunga e’tibor beramiz.`); }
+  let mq = null;
+  if (e.sek === 'lis') { const M = MAQ.slice(0, Math.max(3, maqIntro(d))).filter(m => m.ok); if (M.length) mq = M[(d * 3 + new Date().getHours()) % M.length]; }
+  return {s:S.filter(Boolean).join(' '), line, L, open, last, mq};
+}
+function hakimMsg(pg){
+  const e = EXS.hakim || {gap:{}}, ti = todayIdx(), w = pg.weak, we = exOf(w), pr = planRate(), dl = debtList().length, gap = C2T - pg.total, acc = (PS.hk || {})['d' + ti], pv = pgPrev();
+  const S = [gfill(gpick(e, tod()))];
+  const y = yStat('hokim'); if (y && ti > 1) S.push(gfill(gpick(e, y.n === y.k ? 'yOk' : (y.n === 0 ? 'yBad' : 'yPart'), 1), {n:y.n, k:y.k}));
+  S.push(`Bugungi prognoz — ${pg.total}/150${pv && pv.t !== pg.total ? ` (${pv.d}-kunda ${pv.t})` : ''}. ${gap > 0 ? `C2 uchun yana ${gap} ball kerak.` : 'C2 chegarasidan yuqorisiz — endi ushlab turamiz.'}`);
+  S.push(`Eng zaif bo‘lim — ${SEK[w].toLowerCase()} (${pg.s[w].v}/30).`);
+  S.push(acc ? `Kelishdik: bugun kechki blokda +20 daqiqa ${SEK[acc].toLowerCase()} — ${exOf(acc).ism} bilan.` : `Taklifim: bugun kechki blokda (21:15) ${SEK[w].toLowerCase()}ga +20 daqiqa — ${we ? we.ism : ''} bilan.`);
+  if (pr.c) S.push(gfill(gpick(e, pr.p >= 80 ? 'good' : 'bad', 2), {p:pr.p}));
+  if (dl) S.push(`Qarz: ${dl} ta vazifa — kechki blokda birinchi.`);
+  if (pg.conf === 'past') S.push('Ishonch hozircha past: mock va mashq natijalari ko‘paygani sari aniqlashadi.');
+  return S.filter(Boolean).join(' ');
+}
+function exBars(pg){ return `<div class="exbars">${SEKS.map(k => `<div class="exbr"><span>${SEK[k]}</span><i class="${k === pg.weak ? 'w' : ''}"><em style="width:${pg.s[k].v / 30 * 100}%"></em></i><b>${pg.s[k].v}/30</b></div>`).join('')}</div>`; }
+function exChart(h, unit){
+  if (!h.length) return '<p class="note" style="margin:8px 0 0">Hali natija yo‘q — birinchi mashqdan keyin grafik paydo bo‘ladi.</p>';
+  const L = h.slice(-8);
+  return `<div class="exch"><div class="c2" style="bottom:calc(18px + ${unit === 't' ? C2T / 150 : 0.83} * (100% - 18px))"><span>C2</span></div>${L.map(x => { const v = unit === 't' ? x.v / 150 : x.v; return `<div class="b"><em style="height:${Math.max(3, v * 100)}%" title="${unit === 't' ? x.v : pct(x.v) + ' %'}"></em><u>${x.d}</u></div>`; }).join('')}</div>`;
+}
+let EXACT = [];
+const exBtn = (label, fn, cls, tid) => { EXACT.push([fn, tid]); return `<button type="button" class="btn ${cls || 'alt'}" data-xa="${EXACT.length - 1}">${esc(label)}</button>`; };
+function exBind(){
+  const v = $('#view');
+  v.querySelectorAll('[data-xa]').forEach(b => b.onclick = () => { const a = EXACT[+b.dataset.xa]; if (!a) return; if (a[1]) markStart(todayIdx(), a[1]); a[0](); });
+  v.querySelectorAll('[data-ex]').forEach(b => b.onclick = () => openEx(b.dataset.ex));
+  v.querySelectorAll('a[data-url]').forEach(a => a.onclick = ev => { const W = window.Telegram && window.Telegram.WebApp; if (W && W.initData && W.openLink) { ev.preventDefault(); try { W.openLink(a.dataset.url); } catch(e) {} } });
+  const q = $('#exAsk'); if (q) q.onclick = () => exAskOpen(q.dataset.id);
+  bindLesson(v); paintAr();
+}
+function openEx(id){ EXID = EXS[id] ? id : 'hakim'; setView('exroom'); }
+function renderKengash(){
+  EXACT = [];
+  const pg = prognoz(), ti = todayIdx(), hk = EXS.hakim, acc = (PS.hk || {})['d' + ti];
+  pgSnap(pg);
+  const card = e => { const t = exToday(e), un = feedUnseen(e.sek);
+    const chips = [t.last ? `<span class="chip">oxirgi ${pct(t.last.v)} %</span>` : '', e.sek === pg.weak ? `<span class="chip warn">${exIco('alert')}eng zaif bo‘lim</span>` : '', un && e.yord ? `<span class="chip new">${exIco('search')}${esc(e.yord.ism)}: ${un} yangi</span>` : ''].join('');
+    return `<button type="button" class="excard" data-ex="${e.id}">${exAv(e.id, 'm', true)}<span class="t"><b>${esc(e.ism)} <small>· ${esc(e.rol)}</small></b><span>${esc(t.line)}</span>${chips ? `<span class="exmeta">${chips}</span>` : ''}</span>${exIco('chev')}</button>`; };
+  const un = feedUnseen('hokim');
+  $('#view').innerHTML = `<div class="exhead"><div class="eyebrow">Imtihongacha ${Math.max(0, examDay() - ti)} kun · ${ti}-kun</div><h1 class="tt"><span>Ekspertlar kengashi</span></h1></div>
+    <section class="exhk">
+      <div class="exwho">${exAv('hakim', 'm', true)}<div><b>${esc(hk ? hk.ism : 'Ustoz Hakim')}</b><span>${esc(hk ? hk.rol + ' · ' + hk.kim : '')}</span></div></div>
+      <div class="exbig"><b>${pg.total}</b><span>/ 150 — bugungi prognoz</span></div>
+      <div class="exgoal">C2 uchun kerak: ${C2T}${pg.total < C2T ? ` · yetishmaydi ${C2T - pg.total} ball` : ''} · ishonch: ${pg.conf}</div>
+      ${exBars(pg)}
+      <div class="exsay">${AW(esc(hakimMsg(pg)))}</div>
+      <div class="cta">${acc ? `<span class="exok">${exIco('check')}Qabul qilingan: +20 daqiqa ${esc(SEK[acc].toLowerCase())}</span>` : `<button type="button" class="btn red" id="hkOk">${exIco('check')}Qabul qilaman</button>`}<button type="button" class="btn alt" data-ex="hakim">Batafsil${un ? ` · ${un} yangilik` : ''}</button></div>
+    </section>
+    <div class="exlist">${EXL.filter(e => e.sek !== 'hokim').map(card).join('')}</div>
+    <p class="note">Ekspertlar 39 kunlik rejani bo‘lib olgan: har biri o‘z vazifalarini eslatadi, natijani kuzatadi va o‘rgatadi. Yordamchilar har 3 kunda yangi material qidiradi — avval ekspert tekshiradi, keyin xonada chiqadi.</p>`;
+  const ok = $('#hkOk'); if (ok) ok.onclick = () => { PS.hk = PS.hk || {}; PS.hk['d' + ti] = pg.weak; savePlan(); toast(`Kechki blokka qo‘shildi: +20 daqiqa ${SEK[pg.weak].toLowerCase()} (${exOf(pg.weak).ism}).`); renderKengash(); };
+  exBind();
+}
+function renderHakim(){
+  EXACT = [];
+  const e = EXS.hakim, pg = prognoz(), ti = todayIdx(), pr = planRate(), dl = debtList();
+  pgSnap(pg);
+  const nm = DAYS.find(y => y.ph === 'mock' && y.d >= ti), hist = Object.keys(PS.pg || {}).map(k => ({d:+k.slice(1), v:PS.pg[k][0]})).sort((a, b) => a.d - b.d);
+  const acc = (PS.hk || {})['d' + ti];
+  $('#view').innerHTML = `<button type="button" class="btn alt sm exback" id="exBack">← Kengash</button>
+    <div class="exhero">${exAv('hakim', 'l', true)}<div><div class="eyebrow">${esc(e.rol)} · ${esc(e.kim)}</div><h1 class="tt"><span>${esc(e.ism)}</span></h1><p class="note">${AW(esc(e.uslub))}</p></div></div>
+    <div class="exbub"><div class="exbt">${AW(esc(hakimMsg(pg)))}</div><div class="cta">${acc ? '' : `<button type="button" class="btn red" id="hkOk">Qabul qilaman: +20 daqiqa ${esc(SEK[pg.weak].toLowerCase())}</button>`}${nm ? exBtn(`Mock: ${nm.d}-kun, ${fmtDate(nm.date)}`, () => openMock(nm.d), 'alt') : ''}</div></div>
+    <section class="blk"><h3>${exIco('chart')}Prognoz bo‘limlar bo‘yicha</h3>${exBars(pg)}
+      <div class="tblwrap"><table class="st"><thead><tr><th>Bo‘lim</th><th>Ball</th><th>Manba</th><th>Ekspert</th></tr></thead><tbody>${SEKS.map(k => `<tr><td>${SEK[k]}</td><td class="num"><b>${pg.s[k].v}</b>/30</td><td>${esc(pg.s[k].src)}</td><td><button type="button" class="linkb" data-ex="${exOf(k).id}">${esc(exOf(k).ism)}</button></td></tr>`).join('')}</tbody></table></div>
+      <p class="note">Mock natijasi 60 %, so‘nggi 5 ta mashq 40 % vazn bilan. Ma’lumot yo‘q bo‘limda boshlang‘ich taxmin (milliy sertifikat C1) turadi. Ishonch: ${pg.conf}.</p></section>
+    <section class="blk"><h3>${exIco('chart')}Prognoz kunlar bo‘yicha</h3>${exChart(hist, 't')}</section>
+    <section class="blk"><h3>${exIco('alert')}Reja va qarz</h3><p style="margin:6px 0">Reja bajarilishi: <b>${pr.n}/${pr.c}</b> (${pr.p} %) · C2 uchun ≥ 80 %.</p>${dl.length ? `<p style="margin:6px 0">Qarz (${dl.length}): ${dl.slice(0, 6).map(x => `${x.d}-kun ${esc(tShortName(x.t))}`).join(', ')}.</p>` : '<p class="note" style="margin:6px 0">Qarz yo‘q.</p>'}</section>
+    <section class="blk"><h3>${exIco('bulb')}Strategiya</h3><ul class="exmas">${(e.mas || []).map(m => `<li>${AW(esc(m))}</li>`).join('')}</ul></section>
+    ${feedHtml(e)}
+    <button type="button" class="exaskb" id="exAsk" data-id="hakim">${exIco('msg')}<span>${esc(e.ism)}ga savol bering…</span></button>`;
+  const ok = $('#hkOk'); if (ok) ok.onclick = () => { PS.hk = PS.hk || {}; PS.hk['d' + ti] = pg.weak; savePlan(); toast(`Kechki blokka qo‘shildi: +20 daqiqa ${SEK[pg.weak].toLowerCase()}.`); renderHakim(); };
+  $('#exBack').onclick = () => setView('ekspert');
+  exBind(); feedSeen('hokim');
+}
+function renderExRoom(){
+  const e = EXS[EXID]; if (!e || e.sek === 'hokim') return renderHakim();
+  EXACT = [];
+  const d = todayIdx(), t = exToday(e), sd = sekData(), h = sd.r[e.sek], mk = sd.mk[e.sek];
+  const acts = t.open.flatMap(x => x.act.map(a => exBtn(a[0], a[1], 'red', x.id))).slice(0, 4).join('');
+  const go = (SEKGO[e.sek] || []).map(a => exBtn(a[0], a[1], 'alt')).join('');
+  let trap = '';
+  if (e.sek === 'gram') { const L = trapsGram(3).filter(x => T[x.id]);
+    trap = `<section class="blk"><h3>${exIco('alert')}Tuzoqlaringiz</h3>${L.length ? L.map(x => `<div class="extrap"><span class="n">${x.n}</span><div>${esc(tname(x.id))}<small><span class="ar">${esc(tar(x.id))}</span> · Xatolarim’da ${x.n} ta savol</small></div><span class="tb">${exBtn('Takrorlash', () => preset({list:D.q.filter(q => q.t === x.id && P.w[q.i] && !flagged(q)).slice(0, 15).map(q => q.i), timer:60, label:'Zayd: ' + tname(x.id)}), 'alt')}<button type="button" class="btn alt" data-lesson="${x.id}">Qoida</button></span></div>`).join('') : '<p class="note" style="margin:8px 0 0">Xatolarim bo‘sh — test yeching, tuzoqlaringizni men topaman.</p>'}</section>`; }
+  if (e.sek === 'write' || e.sek === 'speak') { const L = errTop(e.sek, 3);
+    trap = `<section class="blk"><h3>${exIco('alert')}Takrorlanayotgan xatolar</h3>${L.length ? L.map(x => `<div class="extrap"><span class="n">${x.n}</span><div>${esc(x.r)}${x.ex && x.ex.x ? `<small><span class="ar">${esc(x.ex.x)}</span>${x.ex.f ? ' → <span class="ar">' + esc(x.ex.f) + '</span>' : ''}</small>` : ''}</div></div>`).join('') : `<p class="note" style="margin:8px 0 0">Hali baholangan ${e.sek === 'write' ? 'insho' : 'javob'} yo‘q.</p>`}</section>`; }
+  if (e.sek === 'read') { const R = MED.read || [];
+    trap = R.length ? `<section class="blk"><h3>${exIco('file')}O‘qish mocklari (18 savol)</h3><div class="cta">${R.map(x => { const r = dayDoc('rx' + x.id.toLowerCase()); return exBtn(`${x.id}${r && r.sub ? ' · ' + r.score + '/' + r.n : ''}`, () => { readDay = d; readOff = x.id; setView('read'); }, 'alt'); }).join('')}</div></section>` : ''; }
+  if (e.sek === 'lis') { const S = lisAll(), dn = PS.lis || {}, n = S.filter(s => dn[s.id]).length;
+    trap = `<section class="blk"><h3>${exIco('head')}To‘plamlar</h3><p style="margin:6px 0">Bajarilgan: <b>${n}</b> / ${S.length}. Maqol kartalari: ${MAQ.length} ta.</p></section>`; }
+  $('#view').innerHTML = `<button type="button" class="btn alt sm exback" id="exBack">← Kengash</button>
+    <div class="exhero">${exAv(e.id, 'l', true)}<div><div class="eyebrow">${esc(e.rol)} eksperti · ${esc(e.kim)}</div><h1 class="tt"><span>${esc(e.ism)}</span></h1><p class="note">${AW(esc(e.uslub))}</p></div></div>
+    <div class="exbub"><div class="exbt">${AW(esc(t.s))}</div>${t.mq ? `<div class="exmq"><small>Bugungi maqol</small><b class="ar">${esc(t.mq.ar)}</b><span>${AW(esc(t.mq.uz))}</span></div>` : ''}<div class="cta">${acts || go}</div></div>
+    <section class="blk"><h3>${exIco('chart')}O‘sishingiz</h3>${exChart(h)}<p class="note" style="margin:6px 0 0">${e.sek === 'gram' ? 'Kunlik test aniqligi.' : 'Har mashq natijasi.'} C2 chizig‘i ≈ 83 % (25/30).${mk.length ? ` Mock: ${mk.map(x => x.d + '-kun ' + x.v + '/30').join(', ')}.` : ''}</p></section>
+    ${trap}
+    <section class="blk"><h3>${exIco('bulb')}${esc(e.ism)}ning qoidalari</h3><ul class="exmas">${(e.mas || []).map(m => `<li>${AW(esc(m))}</li>`).join('')}</ul></section>
+    ${acts ? `<section class="blk"><h3>Qo‘shimcha mashq</h3><div class="cta">${go}</div></section>` : ''}
+    ${feedHtml(e)}
+    <button type="button" class="exaskb" id="exAsk" data-id="${e.id}">${exIco('msg')}<span>${esc(e.ism)}ga savol bering…</span></button>`;
+  $('#exBack').onclick = () => setView('ekspert');
+  exBind(); feedSeen(e.sek);
+}
+/* ekspert bilan suhbat: claude.ai’da — ilovaning Claude’i; Telegram’da — tanal-api (API kaliti bo‘lsa) */
+const EXSUG = {
+  hokim:['Prognozimni qanday oshiraman?', 'Bu haftaga vaqtni qanday taqsimlay?', 'Qaysi bo‘limga ko‘proq e’tibor beray?'],
+  gram:['Eng zaif mavzumni qisqa tushuntir', 'Shu mavzudan 3 ta savol ber, men javob beraman', 'Munodo turlarini misol bilan'],
+  read:['O‘qish tezligini qanday oshiraman?', 'Asosiy fikr savoliga strategiya', 'Menga qisqa matn va 3 savol ber'],
+  lis:['Maqollardan 3 tasini so‘ra', 'Eshitishda nimani yozib olay?', 'Ma’ruza tuzilishi so‘zlarini misol bilan'],
+  speak:['Menga bitta savol ber, javobimni bahola', 'Javob qolipini misol bilan ko‘rsat', '60 soniyalik javob uchun 10 ta ibora'],
+  write:['100 so‘zli insho rejasini tuz', 'Bog‘lovchilardan 5 tasini misol bilan ber', 'Inshoda ko‘p uchraydigan imlo xatolari']
+};
+function exCtx(e){
+  const pg = prognoz(), t = exToday(e), sd = sekData();
+  let s = `Ekspert: ${e.ism} (${e.rol}). Bugungi kun: ${todayIdx()}-kun, imtihongacha ${Math.max(0, examDay() - todayIdx())} kun.\nPrognoz: ${pg.total}/150 (${SEKS.map(k => SEK[k] + ' ' + pg.s[k].v).join(', ')}); eng zaif: ${SEK[pg.weak]}; ishonch: ${pg.conf}.\nEkspertning bugungi gapi: ${t.s}`;
+  if (e.sek !== 'hokim') s += `\nSo‘nggi natijalar: ${(sd.r[e.sek] || []).slice(-6).map(x => x.d + '-kun ' + pct(x.v) + '%').join(', ') || 'yo‘q'}.`;
+  if (e.sek === 'gram') s += `\nTuzoqlar (Xatolarim): ${trapsGram(5).filter(x => T[x.id]).map(x => tname(x.id) + ' — ' + x.n).join('; ') || 'yo‘q'}.`;
+  if (e.sek === 'write' || e.sek === 'speak') s += `\nTakroriy xatolar: ${errTop(e.sek, 5).map(x => x.r + ' — ' + x.n).join('; ') || 'yo‘q'}.`;
+  s += `\nEkspert strategiyalari:\n- ${(e.mas || []).join('\n- ')}`;
+  const f = feedItems(e.sek).slice(0, 3); if (f.length) s += `\nYordamchi topgan materiallar: ${f.map(x => x.t).join('; ')}.`;
+  return s;
+}
+function exPersona(e){
+  return `Sen «${e.ism}» degan personajsan — Tanal imtihoniga tayyorlovchi jamoada ${e.sek === 'hokim' ? 'bosh ekspert (prognoz va reja)' : e.rol.toLowerCase() + ' eksperti'}. ${e.uslub} Birinchi shaxsda, shu uslubda gapir; lekin qisqa va amaliy bo‘l: tushuntir, mashq ber, javobini tekshir. Asosan o‘z yo‘nalishing bo‘yicha o‘rgat; boshqa bo‘lim savoli bo‘lsa, qisqa javob berib, tegishli ekspert ismini ayt (${EXL.filter(x => x.id !== e.id).map(x => x.ism + ' — ' + x.rol.toLowerCase()).join(', ')}).\n\n`;
+}
+function exAskOpen(id){
+  const nid = EXS[id] ? id : 'hakim';
+  if (ASK.ex !== nid) { if (ASK.ctl) ASK.ctl.abort(); ASK.turns = []; ASK.err = ''; ASK.ex = nid; }
+  $('#ask').hidden = false; $('#askFab').hidden = true; renderAsk();
+  if (matchMedia('(pointer:fine)').matches) $('#askIn').focus();
+}
+
 /* ---------- ask Claude (every section) ---------- */
-const ASK = {turns:[], busy:false, ctl:null, err:''};
-const VNAME = {today:'Bugun', plan:'Reja', rules:'Qoidalar', quiz:'Mashq', write:'Yozish', read:'O‘qish', listen:'Eshitish', speak:'Muhodasa', vocab:'Lug‘at', wrong:'Xatolarim', stats:'Natijalar', mock:'Mock'};
+const ASK = {turns:[], busy:false, ctl:null, err:'', ex:''};
+const VNAME = {ekspert:'Ekspertlar', exroom:'Ekspert', today:'Bugun', plan:'Reja', rules:'Qoidalar', quiz:'Mashq', write:'Yozish', read:'O‘qish', listen:'Eshitish', speak:'Muhodasa', vocab:'Lug‘at', wrong:'Xatolarim', stats:'Natijalar', mock:'Mock'};
 const ASK_SUG = {
   today:['Bugungi rejani qanday tartibda bajaray?', 'Vaqtim kam — bugun nimaga ustuvorlik beray?'],
   plan:['Reja bo‘yicha qayerdaman, nimaga e’tibor beray?', 'Sinov kunlariga qanday tayyorlanay?'],
@@ -2926,13 +3334,15 @@ const ASK_SUG = {
 const ASK_RULES = `Sen talabaning shaxsiy arab tili ustozi va o‘quv sherigisan. Talaba Tanal (التنال العربي) imtihoniga reja bilan tayyorlanmoqda: darajasi B2 atrofida, maqsadi C1–C2; eng zaif joylari nahv, sarf va kitaba (imlo). U «Tanal 30 kunlik reja» ilovasidan foydalanmoqda.
 Javob qoidalari: o‘zbek tilida (lotin yozuvi) javob ber; arabcha misollarni to‘liq harakat bilan yoz; qisqa va aniq bo‘l (odatda 3–8 jumla, kerak bo‘lsa qisqa ro‘yxat); Markdown belgilarini (yulduzcha, panjara) ishlatma. Talaba arabcha yozsa yoki mashq so‘rasa — arabcha ishla.
 Bosqichli yordam: talaba o‘z matnini tuzatishni so‘rasa, avval faqat xato joyi va turini ko‘rsat; to‘g‘ri shaklni u o‘zi urinib ko‘rgach yoki «to‘liq ber» desa ber. Test, o‘qish yoki eshitish savoli javobini talaba javob bermaguncha aytma. Ishonching komil bo‘lmasa, «aniq emas» de — taxminni haqiqat sifatida berma.
-Tanal formati: eshitish (5 qisqa dialog, uzun dialog, ma’ruza), grammatika (30 savol × 1 daqiqa), o‘qish (6 + 8 + 10 savollik 3 matn), yozish (100 va 200 so‘z, har biri 18 daqiqa), gapirish (6 savol, 5 balldan). Imtihon: 2026-yil 20-dekabr.`;
+Tanal formati (2026): grammatika 30 savol × 1 daqiqa; o‘qish 18 savol (3 matn × 6; 1,5+6 / 5+8 / 7+10 daqiqa, orqaga qaytilmaydi); tinglash 18 savol (6 qisqa dialog — ko‘pincha maqol, «ماذا قصد الرجل؟»; uzun dialog 6; ma’ruza 6; audio bir marta + bitta takror); gapirish 6 savol (60 soniya tayyorlanish, javob 30/30/45/45/60/60 soniya); yozish 3 insho (100/150/200 so‘z, 15/20/30 daqiqa, har biri /10). Har bo‘lim /30, jami /150; C2 ≈ 125. Imtihon: 2026-yil 20-dekabr (19-dekabr bo‘lishi ham mumkin).`;
 const strip = h => String(h ?? '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
 const unmd = s => String(s).replace(/\*\*(.+?)\*\*/g, '$1').replace(/^#{1,6}\s*/gm, '').replace(/^\s*[-*]\s+/gm, '• ');
 const arWrap = s => s.replace(/[؀-ۿ]+(?:[  ]+[؀-ۿ]+)*/g, m => `<span class="ar">${m}</span>`);
 function askCtx(){
   let label = VNAME[view] || '', t = '';
-  if (view === 'today' || view === 'plan') {
+  const xe = (view === 'ekspert' || view === 'exroom') && EXS[ASK.ex || (view === 'ekspert' ? 'hakim' : EXID)];
+  if (xe) { label = xe.ism + ' · ' + xe.rol; t = exCtx(xe); }
+  else if (view === 'today' || view === 'plan') {
     const d = selDay, y = DY(d); label += ` · ${d}-kun`;
     t = `${d}-kun (${y.wd}, ${y.date}). Kun yo‘nalishi: ${y.note}\nVazifalar:\n` + tasksFor(d).map(x => `- ${x.tm}: ${strip(x.h)} — ${strip(x.what)}${isDone(d, x.id) ? ' [bajarildi]' : ''}`).join('\n');
   } else if (view === 'rules') {
@@ -2978,35 +3388,47 @@ function askCtx(){
   return {label, text:t.slice(0, 9000)};
 }
 function renderAsk(){
-  const c = askCtx(), sug = ASK_SUG[view] || [], b = $('#askBody');
-  $('#askCtx').textContent = c.label;
-  b.innerHTML = (ASK.turns.length ? '' : `<p class="note" style="margin:0">Claude hozirgi bo‘limni ko‘rib turadi: qoida, savol, matn yoki inshongiz haqida so‘rang. O‘zbekcha yoki arabcha yozishingiz mumkin.</p><div class="sugg">${sug.map((x, i) => `<button class="chip" data-sg="${i}">${esc(x)}</button>`).join('')}</div>`)
+  const c = askCtx(), xe = (view === 'ekspert' || view === 'exroom') && EXS[ASK.ex], sug = xe ? (EXSUG[xe.sek] || []) : (ASK_SUG[view] || []), b = $('#askBody');
+  $('#askCtx').textContent = c.label; $('#askTtl').textContent = xe ? xe.ism + 'ga savol' : 'Claude’dan so‘rash';
+  b.innerHTML = (ASK.turns.length ? '' : `<p class="note" style="margin:0">${xe ? esc(xe.ism) + ' sizning natijalaringiz va bugungi rejani ko‘rib turadi. O‘zbekcha yoki arabcha yozing.' : 'Claude hozirgi bo‘limni ko‘rib turadi: qoida, savol, matn yoki inshongiz haqida so‘rang. O‘zbekcha yoki arabcha yozishingiz mumkin.'}</p><div class="sugg">${sug.map((x, i) => `<button class="chip" data-sg="${i}">${esc(x)}</button>`).join('')}</div>`)
     + ASK.turns.map(t => t.role === 'user' ? `<div class="bub me" dir="auto">${arWrap(esc(t.content))}</div>` : `<div class="bub cl cltext" dir="auto">${arWrap(esc(unmd(t.content)))}</div>`).join('')
-    + (ASK.busy ? '<div class="bub cl cltext" id="askLive" dir="auto"><span class="spin"></span> Claude o‘ylamoqda…</div>' : '')
+    + (ASK.busy ? `<div class="bub cl cltext" id="askLive" dir="auto"><span class="spin"></span> ${xe ? esc(xe.ism) : 'Claude'} o‘ylamoqda…</div>` : '')
+    + (ASK.err && ASK.nokey ? `<div class="cta"><button class="btn alt sm" id="askCl" type="button">claude.ai’da ochish</button></div>` : '')
     + (ASK.err ? `<div class="fb miss" style="margin:0"><span>${esc(ASK.err)}</span></div>` : '');
   b.querySelectorAll('[data-sg]').forEach(x => x.onclick = () => askSend(sug[+x.dataset.sg]));
+  const ac = $('#askCl'); if (ac) ac.onclick = () => { const u = 'https://claude.ai/artifact/8Mim7DadiFc4Yj44u7FmRY' + (xe ? '#ex-' + xe.id : ''); const W = window.Telegram && window.Telegram.WebApp; try { if (W && W.initData && W.openLink) return W.openLink(u); } catch(e) {} window.open(u, '_blank', 'noopener'); };
   $('#askSend').disabled = ASK.busy; $('#askStop').hidden = !ASK.busy;
   b.scrollTop = b.scrollHeight;
 }
 async function askSend(text){
   text = String(text || '').trim(); if (!text || ASK.busy) return;
-  ASK.err = '';
-  const s = await getSample();
+  ASK.err = ''; ASK.nokey = false;
+  const s = (await getSample()) || apiSample();
   if (!s) { ASK.err = 'Claude bu ko‘rinishda mavjud emas — ilovani claude.ai’da oching.'; renderAsk(); return; }
-  const c = askCtx();
+  const c = askCtx(), xe = (view === 'ekspert' || view === 'exroom') && EXS[ASK.ex];
   ASK.turns.push({role:'user', content:text});
   ASK.turns = ASK.turns.slice(-14); while (ASK.turns.length && ASK.turns[0].role !== 'user') ASK.turns.shift();
   ASK.busy = true; $('#askIn').value = ''; renderAsk();
   const ctl = ASK.ctl = new AbortController();
-  const head = {role:'user', content:`${ASK_RULES}\n\nTalaba hozir ilovaning «${c.label}» bo‘limida. Ekrandagi ma’lumot:\n<<<\n${c.text || '—'}\n>>>\n\nQuyida talaba bilan suhbat.`};
+  const head = {role:'user', content:`${xe ? exPersona(xe) : ''}${ASK_RULES}\n\nTalaba hozir ilovaning «${c.label}» bo‘limida. Ekrandagi ma’lumot:\n<<<\n${c.text || '—'}\n>>>\n\nQuyida talaba bilan suhbat.`};
   try {
     const r = await s([head, ...ASK.turns], {cache:false, signal:ctl.signal, onText:({text}) => { const el = $('#askLive'); if (el) { el.innerHTML = arWrap(esc(unmd(text))); const bd = $('#askBody'); bd.scrollTop = bd.scrollHeight; } }});
     ASK.turns.push({role:'assistant', content:r.text + (r.truncated ? '\n(javob qisqartirildi)' : '')});
   } catch(e) {
     if (e && e.text) ASK.turns.push({role:'assistant', content:e.text});
-    if (!e || e.code !== 'cancelled') ASK.err = sampleErr(e);
+    if (!e || e.code !== 'cancelled') { ASK.err = sampleErr(e); ASK.nokey = !!(e && (e.code === 'nokey' || e.code === 'limit' || e.code === 'api')); }
   }
   ASK.busy = false; ASK.ctl = null; renderAsk();
+}
+function apiSample(){
+  if (!window.__API) return null;
+  return async (msgs, o) => {
+    let r;
+    try { r = await window.__API('ask', {ex:ASK.ex || '', m:msgs.map(x => ({role:x.role, content:String(x.content).slice(0, 14000)}))}); }
+    catch(e) { const m = String(e && e.message || ''); throw {code:/nokey/.test(m) ? 'nokey' : (/limit/.test(m) ? 'limit' : 'api')}; }
+    if (o && o.signal && o.signal.aborted) throw {code:'cancelled'};
+    return {text:String(r.text || ''), truncated:!!r.cut};
+  };
 }
 let ASK_OK = false;
 const askHide = v => !ASK_OK || (MOCK.on && ['quiz', 'read', 'write', 'listen', 'speak', 'mock'].includes(v));
@@ -3162,13 +3584,15 @@ function renderNatija(){
 }
 
 /* ---------- Telegram: orqaga tugmasi, pastki panel, yopishni tasdiqlash ---------- */
-const TOPV = new Set(['today', 'mashq', 'claude', 'natija']);
+const TOPV = new Set(['today', 'mashq', 'ekspert', 'natija']);
 let HOME = 'today';
 function miniAfterView(v){
   if (TOPV.has(v)) HOME = v;
-  document.querySelectorAll('#bnav button').forEach(b => b.setAttribute('aria-current', b.dataset.b === HOME));
+  const g = v === 'exroom' || v === 'claude' ? 'ekspert' : HOME;
+  document.querySelectorAll('#bnav button').forEach(b => b.setAttribute('aria-current', b.dataset.b === g));
   if (!TG) return;
   try { if (TOPV.has(v)) TG.BackButton.hide(); else TG.BackButton.show(); } catch(e) {}
+  if (v === 'exroom' || v === 'claude') HOME = 'ekspert';
   try { if (v === 'quiz' && run) TG.enableClosingConfirmation(); else TG.disableClosingConfirmation(); } catch(e) {}
 }
 async function miniRefresh(){
@@ -3190,13 +3614,20 @@ function miniGo(go){
     if (t) { const a = aiOf(t); if (a) { CLF = a[1]; return setView('claude'); } if (t.act[0] && !taskDone(ti, t)) { markStart(ti, t.id); return t.act[0][1](); } }
     return setView('today');
   }
-  if (['mashq', 'claude', 'natija', 'vocab', 'wrong', 'listen', 'quiz', 'plan'].includes(go)) return navTo(go);
+  if (/^ex[a-z]{1,6}$/.test(go) && EXS[go.slice(2)]) return openEx(go.slice(2));
+  if (['mashq', 'claude', 'natija', 'vocab', 'wrong', 'listen', 'quiz', 'plan', 'ekspert'].includes(go)) return navTo(go);
 }
 { const sr = startRun, fi = finish;                // test boshlanganda/tugaganda — yopishni tasdiqlash
   startRun = function(){ const r = sr.apply(null, arguments); miniAfterView(view); return r; };
   finish = function(){ const r = fi.apply(null, arguments); miniAfterView(view); return r; }; }
+/* yordamchilar lentasi: Pages'dagi yangilik.json (bulutdagi yordamchilar har 3 kunda yangilaydi) */
+async function loadFeed(){
+  try { const r = await fetch('yangilik.json?t=' + Math.floor(Date.now() / 6e5), {cache:'no-store'}); if (!r.ok) return; const f = await r.json();
+    if (f && Array.isArray(f.items)) { FEED = f; if (view === 'ekspert' || view === 'exroom') render(); } } catch(e) {}
+}
 function miniStart(){
   $('#bnav').hidden = false;
+  loadFeed();
   if (mergeBot(KVC.botdone)) render();
   pushSched();
   document.addEventListener('click', e => { if (TG && TG.HapticFeedback && e.target.closest && e.target.closest('.opt,.ck,.vgrade .btn,.tile')) { try { TG.HapticFeedback.selectionChanged(); } catch(_) {} } }, true);
@@ -3212,10 +3643,9 @@ function miniStart(){
 
 /* ---------- views ---------- */
 const SIDE = ['rules', 'quiz'];
-const GROUP = {today:'today', mock:'today', quiz:'quiz', write:'skill', read:'skill', listen:'skill', speak:'skill', vocab:'vocab', plan:'more', rules:'more', wrong:'more', stats:'more', typing:'more'};
+const GROUP = {today:'today', mock:'today', quiz:'quiz', write:'ekspert', read:'ekspert', listen:'ekspert', speak:'ekspert', ekspert:'ekspert', exroom:'ekspert', vocab:'vocab', plan:'more', rules:'more', wrong:'more', stats:'more', typing:'more'};
 const SHEETS = {
-  skill:[['write', 'Yozish'], ['read', 'O‘qish'], ['listen', 'Eshitish'], ['speak', 'Muhodasa']],
-  more:[['plan', 'Reja'], ['rules', 'Qoidalar'], ['wrong', 'Xatolarim'], ['typing', 'Terish testi'], ['stats', 'Natijalar']]
+  more:[['plan', 'Reja'], ['rules', 'Qoidalar'], ['wrong', 'Xatolarim'], ['write', 'Yozish'], ['read', 'O‘qish'], ['listen', 'Eshitish'], ['speak', 'Muhodasa'], ['typing', 'Terish testi'], ['stats', 'Natijalar']]
 };
 function render(){
   if (view === 'mashq') return renderMashq();
@@ -3234,6 +3664,8 @@ function render(){
   else if (view === 'wrong') renderWrong();
   else if (view === 'stats') renderStats();
   else if (view === 'typing') renderTyping();
+  else if (view === 'ekspert') renderKengash();
+  else if (view === 'exroom') renderExRoom();
 }
 function setView(v, quiet){
   if (v === 'write' || v === 'speak' || (v === 'read' && !readOff)) { CLF = v; v = 'claude'; }
@@ -3275,7 +3707,7 @@ document.querySelectorAll('#bnav button').forEach(b => b.onclick = () => {
   const sh = $('#sheet');
   if (!sh.hidden && sh.dataset.g === g) { sh.hidden = true; return; }
   sh.dataset.g = g;
-  $('#sheetIn').innerHTML = `<h4>${g === 'skill' ? 'Mahorat' : 'Yana'}</h4>` + SHEETS[g].map(([v, l]) => `<button type="button" role="menuitem" data-sv="${v}" aria-current="${view === v}">${esc(l)}</button>`).join('');
+  $('#sheetIn').innerHTML = `<h4>Yana</h4>` + SHEETS[g].map(([v, l]) => `<button type="button" role="menuitem" data-sv="${v}" aria-current="${view === v}">${esc(l)}</button>`).join('');
   $('#sheetIn').querySelectorAll('[data-sv]').forEach(x => x.onclick = () => navTo(x.dataset.sv));
   sh.hidden = false;
 });
