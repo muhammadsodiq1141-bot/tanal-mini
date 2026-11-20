@@ -581,6 +581,9 @@ button.wi.hist:hover{border-color:var(--navy)}
 .exmq span{font-size:14px;color:var(--muted);direction:rtl;text-align:right}
 .exaskb{display:flex;gap:10px;align-items:center;width:100%;background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;color:var(--muted);font-size:15px;text-align:left}
 .exaskb .ico{width:20px;height:20px;color:var(--navy)}
+.exaskb span{flex:1;display:flex;flex-direction:column}
+.exaskb small{font-size:12px;color:var(--muted)}
+.exaskb .ico:last-child{width:16px;height:16px;color:var(--muted)}
 .linkb{background:none;border:0;padding:0;color:var(--navy);font-weight:600;cursor:pointer;text-decoration:underline}
 </style>
 
@@ -832,6 +835,7 @@ select,input[type=number],input[type=text],textarea{border-radius:12px;border-co
 .ask{z-index:20}
 .ask .bub.cl{background:#EEF7EC}
 .exmq{border-left-color:#2EB82E;background:#F3FAF2;border-radius:0 12px 12px 0;padding:8px 12px}
+.exaskb .ico:last-child{background:none;padding:0;width:16px;height:16px;color:#5A8060}
 </style>
 </head>
 <body>
@@ -3254,7 +3258,7 @@ function renderHakim(){
     <section class="blk"><h3>${exIco('alert')}Reja va qarz</h3><p style="margin:6px 0">Reja bajarilishi: <b>${pr.n}/${pr.c}</b> (${pr.p} %) · C2 uchun ≥ 80 %.</p>${dl.length ? `<p style="margin:6px 0">Qarz (${dl.length}): ${dl.slice(0, 6).map(x => `${x.d}-kun ${esc(tShortName(x.t))}`).join(', ')}.</p>` : '<p class="note" style="margin:6px 0">Qarz yo‘q.</p>'}</section>
     <section class="blk"><h3>${exIco('bulb')}Strategiya</h3><ul class="exmas">${(e.mas || []).map(m => `<li>${AW(esc(m))}</li>`).join('')}</ul></section>
     ${feedHtml(e)}
-    <button type="button" class="exaskb" id="exAsk" data-id="hakim">${exIco('msg')}<span>${esc(e.ism)}ga savol bering…</span></button>`;
+    <button type="button" class="exaskb" id="exAsk" data-id="hakim">${exIco('msg')}<span>${esc(e.ism)}ga savol bering…${claudeOK() ? '' : '<small>claude.ai’da ochiladi</small>'}</span>${claudeOK() ? '' : exIco('ext')}</button>`;
   const ok = $('#hkOk'); if (ok) ok.onclick = () => { PS.hk = PS.hk || {}; PS.hk['d' + ti] = pg.weak; savePlan(); toast(`Kechki blokka qo‘shildi: +20 daqiqa ${SEK[pg.weak].toLowerCase()}.`); renderHakim(); };
   $('#exBack').onclick = () => setView('ekspert');
   exBind(); feedSeen('hokim');
@@ -3282,7 +3286,7 @@ function renderExRoom(){
     <section class="blk"><h3>${exIco('bulb')}${esc(e.ism)}ning qoidalari</h3><ul class="exmas">${(e.mas || []).map(m => `<li>${AW(esc(m))}</li>`).join('')}</ul></section>
     ${acts ? `<section class="blk"><h3>Qo‘shimcha mashq</h3><div class="cta">${go}</div></section>` : ''}
     ${feedHtml(e)}
-    <button type="button" class="exaskb" id="exAsk" data-id="${e.id}">${exIco('msg')}<span>${esc(e.ism)}ga savol bering…</span></button>`;
+    <button type="button" class="exaskb" id="exAsk" data-id="${e.id}">${exIco('msg')}<span>${esc(e.ism)}ga savol bering…${claudeOK() ? '' : '<small>claude.ai’da ochiladi</small>'}</span>${claudeOK() ? '' : exIco('ext')}</button>`;
   $('#exBack').onclick = () => setView('ekspert');
   exBind(); feedSeen(e.sek);
 }
@@ -3310,6 +3314,11 @@ function exPersona(e){
 }
 function exAskOpen(id){
   const nid = EXS[id] ? id : 'hakim';
+  if (!claudeOK()) {                    // Telegram (va lokal nusxa): suhbat claude.ai’dagi ilovada — o‘sha ekspert xonasi, savol oynasi ochiq
+    const u = 'https://claude.ai/artifact/8Mim7DadiFc4Yj44u7FmRY#ex-' + nid + '-savol', W = window.Telegram && window.Telegram.WebApp;
+    try { if (W && W.initData && W.openLink) { W.openLink(u); return; } } catch(e) {}
+    window.open(u, '_blank', 'noopener'); return;
+  }
   if (ASK.ex !== nid) { if (ASK.ctl) ASK.ctl.abort(); ASK.turns = []; ASK.err = ''; ASK.ex = nid; }
   $('#ask').hidden = false; $('#askFab').hidden = true; renderAsk();
   if (matchMedia('(pointer:fine)').matches) $('#askIn').focus();
