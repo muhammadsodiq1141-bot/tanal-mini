@@ -1160,7 +1160,7 @@ const setup = {scope:'topic', count:20, order:'rand', src:'all', topics:[], time
 let run = null, qTimer = null;
 /* «Savolda xato bor»: P.fl[i] = {at, h}; savol matni tuzatilsa (h o‘zgarsa) — belgi o‘z-o‘zidan bekor bo‘ladi */
 const qh = q => { const s = q.s + '|' + (q.x || '') + '|' + (q.o || []).join('|') + '|' + q.c + '|' + (q.a || ''); let h = 5381; for (let i = 0; i < s.length; i++) h = (h * 33 + s.charCodeAt(i)) | 0; return (h >>> 0).toString(36); };
-const flagged = q => { const f = q && P.fl && P.fl[q.i]; return !!f && f.h === qh(q); };
+const flagged = q => { if (q && q.yo) return true; const f = q && P.fl && P.fl[q.i]; return !!f && f.h === qh(q); };   // q.yo — testdan yashirilgan (27.11: 319)
 function pool(){
   if (setup.scope === 'list' && setup.list) return setup.list.map(i => D.q[i]).filter(q => q && !flagged(q));
   return pool0().filter(q => !flagged(q));
